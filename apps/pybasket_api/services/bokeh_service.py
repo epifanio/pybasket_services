@@ -1,6 +1,9 @@
 from bokeh.embed import server_document
+import os
 
 
 def get_dashboard_script(data):
-    dashboard = server_document(f'http://10.0.0.100:7000/pybasket_ui', arguments={'data': data})
+    ui_host = os.environ['UI_HOST']
+    print('####################################', ui_host, '##############################')
+    dashboard = server_document(f'http://{ui_host}/pybasket_ui', arguments={'data': data})
     return dashboard
