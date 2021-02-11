@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  fastapi:
+    image: epinux/pybasket_api:latest
+    build:
+      context: ./docker/fastapi
+    environment:
+        DOWNLOAD_DIR: "/app/download"
+        DEBUG: 1
+        PYTHONUNBUFFERED: 1
+        LOGLEVEL: DEBUG
+        RABBIT_HOST: "pyamqp://guest@rabbit//"
+        API_HOST: "10.0.0.100:8000"
+    volumes:
+      - ./apps/pybasket_api:/app
+    ports:
+      - 8000:80
+    hostname: fastapi
+    links:
+      - bokeh
+
+  rabbit:
+    image: rabbitmq:latest
+    ports:
+      - 5672:5672
+    hostname: rabbit
+
+  worker:
+    image: epinux/pybasket_api:latest
+    environment: 
+      DOWNLOAD_DIR: "/app/download"
+      PYTHONPATH: "/app"
+      RABBIT_HOST: "pyamqp://guest@rabbit//"
+      API_HOST: "10.0.0.100:8000"
+    volumes:
+      - ./apps/pybasket_api:/app
+    entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
+    depends_on: 
+      - rabbit
+    hostname: worker
+
+  flower:  
+    image: mher/flower:0.9.5
+    command: ["flower", "--broker=amqp://guest@rabbit//", "--port=8888"]  
+    ports:  
+      - 10000:8888 
+    depends_on: 
+      - rabbit
+    hostname: flower
+
+  bokeh:
+    image: epinux/pybasket_ui:latest
+    build:
+      context: ./docker/bokeh
+    environment:
+      # DOWNLOAD_DIR: "/app/static/download"
+      BOKEH_ALLOW_WS_ORIGIN: '10.0.0.100:8000'
+      # ORIGIN: '0.0.0.0:7000' 
+      PORT: '7000'
+      LOG_LEVEL: 'debug'
+      TSPLOT_DOWNLOAD: '/pybasket_ui/Download'
+      PLOT_ENDPOINT: 'https://ncplot.epinux.com/test/TS-Plot'
+      API_HOST: "10.0.0.100:8000"
+    volumes:
+      - ./apps/pybasket_ui/dashboard:/pybasket_ui
+      - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
+    ports:
+      - 7000:7000
+    hostname: bokeh
+
+  redismod:
+    image: redislabs/redismod:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./apps/redis/data:/data
+      - ./apps/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: '/usr/local/etc/redis/redis.conf --appendonly yes'
+    hostname: redismod

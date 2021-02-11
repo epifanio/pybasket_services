@@ -1,0 +1,28 @@
+FROM epinux/pybasket_api
+
+LABEL maintainer="massimods@met.no"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y software-properties-common curl && curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get update && apt-get install -y --no-install-recommends nodejs 
+
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install dependencies:
+COPY requirements.txt .
+RUN pip install -U pip
+RUN pip install -r requirements.txt
+
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 7000
+
+ENV ORIGIN="0.0.0.0:7000" PORT="7000" PREFIX="" LOG_LEVEL="debug"
+
+COPY ./app /app
+ENTRYPOINT ["./entrypoint.sh"]
+
+

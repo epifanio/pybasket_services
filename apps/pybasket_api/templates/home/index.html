@@ -1,0 +1,56 @@
+{% extends "shared/layout.html" %}
+
+{% block content %}
+
+    <img src="/static/img/met-logo.ico" style="float: left; max-width: 48px; margin-right: 20px;" alt="">
+
+    <h1><span class="font-semi-bold">METSIS</span> <span class="smaller">API</span>
+    </h1>
+
+    <div style="clear:both;"></div>
+    <br>
+    <br>
+    <p class="lead">
+        The <a href="http://127.0.0.1:9000/docs">METSIS</a> API service.<br>
+        <br>
+        <strong>Endpoints</strong>
+    <ul>
+        <li>
+            <strong>Dashboard</strong><br>
+            <a href='/dashboard?data={"data":{"id":{"title":" ","feature_type":"timeSeries","resources":{"opendap":["oepndap-url"]}}},"email": " ","project":" "}'
+               target="_blank"
+            ><strong>GET /dashboard?data={"data":{"id":{"title":" ","feature_type":"timeSeries","resources":{"opendap":["oepndap-url"]}}},"email": " ","project":" "}</strong></a><br>
+            <br>
+            <div style="font-size: 12px;">
+                <strong>Parameters</strong>
+                <ul>
+                    <li><strong>Required</strong>: <code>data={"data":{"id":{"title":" ","feature_type":"timeSeries","resources":{"opendap":["oepndap-url"]}}}</code> - Json data.
+                    </li>
+                </ul>
+
+                <strong>Response JSON</strong>
+                <ul>
+                    <li>Click <a href='/dashboard?data={"data":{"id":{"title":" ","feature_type":"timeSeries","resources":{"opendap":["oepndap-url"]}}},"email": " ","project":" "}'
+                                 target="_blank"
+                    >the link above</a> to see example output.
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+    </p>
+
+    {% if events %}
+    <div>
+        <h2>Recent events</h2>
+        <ul>
+            {% for e in events %}
+            <li> e </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    </div>
+
+{% endblock %}

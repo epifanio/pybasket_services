@@ -1,0 +1,16 @@
+{% extends "shared/base.html" %}
+{% block content %}
+
+<p class="p1">Dear METSIS Userer,</p>
+<br>
+<p class="p1">The datasources from you requested on {{ date }}, </p>
+<br>
+    <p>
+      {% for record in data %}
+      <p class="p1"> {{record}} </p>
+      {% endfor %}
+    </p>
+<br>
+<p class="p1">are available for download at the following <a href="{{url}}">link</a> </p>
+<br>
+{% endblock %}

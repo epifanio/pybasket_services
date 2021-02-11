@@ -1,0 +1,16 @@
+fastapi~=0.63.0
+uvicorn~=0.13.3
+httpx
+requests
+aiofiles
+pydantic~=1.7.3
+starlette~=0.13.6
+bokeh~=2.2.3
+celery~=5.0.5
+Jinja2~=2.11.2
+itsdangerous~=1.1.0
+netCDF4
+xarray
+gunicorn
+redis
+redisearch

@@ -1,0 +1,7 @@
+bokeh~=2.2.3
+netCDF4
+xarray
+requests~=2.25.1
+json2html~=1.3.0
+redis
+redisearch
