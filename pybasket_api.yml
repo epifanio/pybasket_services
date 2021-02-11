@@ -11,7 +11,8 @@ services:
         PYTHONUNBUFFERED: 1
         LOGLEVEL: DEBUG
         RABBIT_HOST: "pyamqp://guest@rabbit//"
-        API_HOST: "10.0.0.100:8000"
+        API_HOST: "${API_HOST}"
+        UI_HOST: "${UI_HOST}"
     volumes:
       - ./apps/pybasket_api:/app
     ports:
@@ -32,7 +33,7 @@ services:
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
       RABBIT_HOST: "pyamqp://guest@rabbit//"
-      API_HOST: "10.0.0.100:8000"
+      API_HOST: "${API_HOST}"
     volumes:
       - ./apps/pybasket_api:/app
     entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
@@ -54,14 +55,11 @@ services:
     build:
       context: ./docker/bokeh
     environment:
-      # DOWNLOAD_DIR: "/app/static/download"
-      BOKEH_ALLOW_WS_ORIGIN: '10.0.0.100:8000'
-      # ORIGIN: '0.0.0.0:7000' 
+      BOKEH_ALLOW_WS_ORIGIN: '${API_HOST},localhost:8000'
       PORT: '7000'
       LOG_LEVEL: 'debug'
-      TSPLOT_DOWNLOAD: '/pybasket_ui/Download'
-      PLOT_ENDPOINT: 'https://ncplot.epinux.com/test/TS-Plot'
-      API_HOST: "10.0.0.100:8000"
+      PLOT_ENDPOINT: "${PLOT_ENDPOINT}"
+      API_HOST: "${API_HOST}"
     volumes:
       - ./apps/pybasket_ui/dashboard:/pybasket_ui
       - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
