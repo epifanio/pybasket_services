@@ -14,8 +14,8 @@ curdoc_element = curdoc()
 
 args = curdoc_element.session_context.request.arguments
 
-if not Path(os.environ['TSPLOT_DOWNLOAD']).exists():
-    Path(os.environ['TSPLOT_DOWNLOAD']).mkdir(parents=True, exist_ok=True)
+#if not Path(os.environ['TSPLOT_DOWNLOAD']).exists():
+#    Path(os.environ['TSPLOT_DOWNLOAD']).mkdir(parents=True, exist_ok=True)
 
 input_data = json.loads(args.get('data')[0].decode())
 
