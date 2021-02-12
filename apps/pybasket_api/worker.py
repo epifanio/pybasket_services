@@ -57,11 +57,14 @@ def fake_compress(data, email_to, transaction_id):
     zip_file = zipfile.ZipFile(outfile, 'a')
     for i in data:
         nc_url = data[i]['resources']['opendap'][0]
-        with xr.open_dataset(nc_url, decode_cf=False) as ds:
-            nc_name = nc_url.split('/')[-1]
-            ds.to_netcdf(nc_name)
-            zip_file.write(nc_name, os.path.basename(nc_name))
-        logger.info(f"Compressing {i} in {filename}")
+        try:
+            with xr.open_dataset(nc_url, decode_cf=False) as ds:
+                nc_name = nc_url.split('/')[-1]
+                ds.to_netcdf(nc_name)
+                zip_file.write(nc_name, os.path.basename(nc_name))
+            logger.info(f"Compressing {i} in {filename}")
+        except FileNotFoundError:
+            print(f'resource {nc_url} is not a valid opendap resource')
     zip_file.close()
     env = Environment(loader=FileSystemLoader("""/app/templates"""))
     template = env.get_template('download/mail_download.html')
