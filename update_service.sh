@@ -1,5 +1,5 @@
-export DOMAIN=$1.epinux.com
-export DOMAIN2=$2.epinux.com
+export DOMAIN=$1.metsis-api.met.no
+export DOMAIN2=$2.metsis-api.met.no
 docker stack rm $1
 sleep 25
 export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')

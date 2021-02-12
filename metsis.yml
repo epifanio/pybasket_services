@@ -11,8 +11,8 @@ services:
         PYTHONUNBUFFERED: 1
         LOGLEVEL: DEBUG
         RABBIT_HOST: "pyamqp://guest@rabbit//"
-        API_HOST: "metsis.epinux.com"
-        UI_HOST: "bokeh.epinux.com"
+        API_HOST: "metsis.metsis-api.met.no"
+        UI_HOST: "bokeh.metsis-api.met.no"
         PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
     volumes:
       - ./apps/pybasket_api:/app
@@ -67,8 +67,8 @@ services:
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
       RABBIT_HOST: "pyamqp://guest@rabbit//"
-      API_HOST: "metsis.epinux.com"
-      UI_HOST: "bokeh.epinux.com"
+      API_HOST: "metsis.metsis-api.met.no"
+      UI_HOST: "bokeh.metsis-api.met.no"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
     volumes:
       - ./apps/pybasket_api:/app
@@ -96,11 +96,11 @@ services:
     build:
       context: ./docker/bokeh
     environment:
-      BOKEH_ALLOW_WS_ORIGIN: 'metsis.epinux.com:7000,metsis.epinux.com,metsis.epinux.com:8000'
+      BOKEH_ALLOW_WS_ORIGIN: 'bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no'
       PORT: '7000'
       LOG_LEVEL: 'debug'
-      API_HOST: "metsis.epinux.com"
-      UI_HOST: "bokeh.epinux.com"
+      API_HOST: "metsis.metsis-api.met.no"
+      UI_HOST: "bokeh.metsis-api.met.no"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
     volumes:
       - ./apps/pybasket_ui/dashboard:/pybasket_ui
@@ -112,6 +112,11 @@ services:
       - net
       - traefik-public
     deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        # max_attempts: 5
+        # window: 240s
       resources:
         #limits:
         #  cpus: '0.50'
