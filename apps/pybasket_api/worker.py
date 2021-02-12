@@ -68,7 +68,7 @@ def fake_compress(data, email_to, transaction_id):
     zip_file.close()
     env = Environment(loader=FileSystemLoader("""/app/templates"""))
     template = env.get_template('download/mail_download.html')
-    url = f'http://{api_host}/api/download/{download_token}'
+    url = f'https://{api_host}/api/download/{download_token}'
     output = template.render(data=data,
                              date=dt.datetime.now().isoformat(),
                              url=url)

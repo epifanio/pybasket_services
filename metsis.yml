@@ -1,0 +1,160 @@
+version: '3.3'
+
+services:
+  fastapi:
+    image: epinux/pybasket_api:latest
+    build:
+      context: ./docker/fastapi
+    environment:
+        DOWNLOAD_DIR: "/app/download"
+        DEBUG: 1
+        PYTHONUNBUFFERED: 1
+        LOGLEVEL: DEBUG
+        RABBIT_HOST: "pyamqp://guest@rabbit//"
+        API_HOST: "metsis.epinux.com"
+        UI_HOST: "bokeh.epinux.com"
+        PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+    volumes:
+      - ./apps/pybasket_api:/app
+    ports:
+      - 8000:80
+    hostname: fastapi
+    links:
+      - bokeh
+    networks:
+      - net
+      - traefik-public
+    deploy:
+      resources:
+        #limits:
+        #  cpus: '0.50'
+        #  memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.metsis-http.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.metsis-http.entrypoints=http
+        - traefik.http.routers.metsis-http.middlewares=https-redirect
+        - traefik.http.routers.metsis-https.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.metsis-https.entrypoints=https
+        - traefik.http.routers.metsis-https.tls=true
+        - traefik.http.routers.metsis-https.tls.certresolver=le
+        - traefik.http.services.metsis.loadbalancer.server.port=80
+        # allow CORS
+        - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+        - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
+
+  rabbit:
+    image: rabbitmq:latest
+    ports:
+      - 5672:5672
+    hostname: rabbit
+    networks:
+      - net 
+  
+  worker:
+    image: epinux/pybasket_api:latest
+    environment: 
+      DOWNLOAD_DIR: "/app/download"
+      PYTHONPATH: "/app"
+      RABBIT_HOST: "pyamqp://guest@rabbit//"
+      API_HOST: "metsis.epinux.com"
+      UI_HOST: "bokeh.epinux.com"
+      PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+    volumes:
+      - ./apps/pybasket_api:/app
+    entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
+    depends_on: 
+      - rabbit
+    hostname: worker
+    networks:
+      - net  
+
+  flower:  
+    image: mher/flower:0.9.5
+    command: ["flower", "--broker=amqp://guest@rabbit//", "--port=8888"]  
+    ports:  
+      - 10000:8888 
+    depends_on: 
+      - rabbit
+    hostname: flower
+    networks:
+      - net
+      - traefik-public
+
+  bokeh:
+    image: epinux/pybasket_ui:latest
+    build:
+      context: ./docker/bokeh
+    environment:
+      BOKEH_ALLOW_WS_ORIGIN: 'metsis.epinux.com:7000,metsis.epinux.com,metsis.epinux.com:8000'
+      PORT: '7000'
+      LOG_LEVEL: 'debug'
+      API_HOST: "metsis.epinux.com"
+      UI_HOST: "bokeh.epinux.com"
+      PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+    volumes:
+      - ./apps/pybasket_ui/dashboard:/pybasket_ui
+      - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
+    ports:
+      - 7000:7000
+    hostname: bokeh
+    networks:
+      - net
+      - traefik-public
+    deploy:
+      resources:
+        #limits:
+        #  cpus: '0.50'
+        #  memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.bokeh-http.rule=Host(`${DOMAIN2?Variable not set}`)
+        - traefik.http.routers.bokeh-http.entrypoints=http
+        - traefik.http.routers.bokeh-http.middlewares=https-redirect
+        - traefik.http.routers.bokeh-https.rule=Host(`${DOMAIN2?Variable not set}`)
+        - traefik.http.routers.bokeh-https.entrypoints=https
+        - traefik.http.routers.bokeh-https.tls=true
+        - traefik.http.routers.bokeh-https.tls.certresolver=le
+        - traefik.http.services.bokeh.loadbalancer.server.port=7000
+        # allow CORS
+        - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+        - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
+
+  redismod:
+    image: redislabs/redismod:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./apps/redis/data:/data
+      - ./apps/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: '/usr/local/etc/redis/redis.conf --appendonly yes'
+    hostname: redismod
+    networks:
+      - net 
+
+networks:
+  net:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true

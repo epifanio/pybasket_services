@@ -206,8 +206,9 @@ def export_widget(current_doc, widget, json_data, advanced=False):
                      'project': json_data['project']}
         # r = requests.post('http://127.0.0.1:9000/api/compress', json=send_data)
         api_host = os.environ['API_HOST']
+        # api_host = 'metsis.epinux.com'
         # r = requests.post('http://10.0.0.100:8000/api/compress', json=send_data)
-        r = requests.post(f'http://{api_host}/api/compress', json=send_data)
+        r = requests.post(f'https://{api_host}/api/compress', json=send_data)
         transaction_id = str(r.json()['transaction_id'])
         output_log_widget.visible = True
         wait(lambda: get_status(transaction_id), waiting_for="download to be ready")
