@@ -14,6 +14,7 @@ services:
         API_HOST: "metsis.metsis-api.met.no"
         UI_HOST: "bokeh.metsis-api.met.no"
         PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+        FORWARDED_ALLOW_IPS: "*"
     volumes:
       - ./apps/pybasket_api:/app
     ports:
