@@ -63,8 +63,11 @@ def fake_compress(data, email_to, transaction_id):
                 try:
                     nc_name = nc_url.split('/')[-1]
                     ds.to_netcdf(nc_name)
+                except:
+                    logger.debug(f"failed processing {i}")
+                try:
                     zip_file.write(nc_name, os.path.basename(nc_name))
-                except RuntimeError:
+                except:
                     logger.debug(f"failed processing {i}")
             logger.info(f"Compressing {i} in {filename}")
         except FileNotFoundError:
