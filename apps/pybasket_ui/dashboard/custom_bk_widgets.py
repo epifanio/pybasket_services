@@ -11,6 +11,11 @@ from json2html import *
 from ast import literal_eval
 import os
 
+from log_util import setup_log, get_logpath
+
+
+logger = setup_log('custom_checkbox', logtype='stream')
+
 
 def get_selection(widget, json_data):
     ts_selected = [i.children[0].children[0].labels[0] for i in widget.children[0].children[2].children if
@@ -48,7 +53,7 @@ def meta_button(metadata_dict, host_layout, content_type='metadata'):
     if content_type == 'plot':
         plot_endpoint = os.environ['PLOT_ENDPOINT']  # 'https://ncplot.epinux.com/test/TS-Plot'
         plot_url = literal_eval(metadata_dict)['resources']['opendap'][0]
-        content = f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
+        content = 'placeholder' #f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
         icon_name = "line-chart"
     host_layout.children[0].text = content
 
@@ -71,6 +76,7 @@ def meta_button(metadata_dict, host_layout, content_type='metadata'):
 
 
 def custom_checkbox(json_data):
+    logger.debug(f'received: {json_data}')
     metadata_layout = row(Div(text='host'))
     metadata_layout.visible = False
     plot_layout = row(Div(text='host'))
@@ -201,20 +207,26 @@ def export_widget(current_doc, widget, json_data, advanced=False):
 
     def compress_selection(widget, json_data, output_log_widget):
         selected_data = get_selection(widget, json_data)
+        logger.debug(f'attempt to compress: {selected_data}')
         send_data = {'data': selected_data,
                      'email': json_data['email'],
                      'project': json_data['project']}
         # r = requests.post('http://127.0.0.1:9000/api/compress', json=send_data)
         api_host = os.environ['API_HOST']
+        logger.debug(f'using api host: {api_host}')
         # api_host = 'metsis.epinux.com'
         # r = requests.post('http://10.0.0.100:8000/api/compress', json=send_data)
-        r = requests.post(f'https://{api_host}/api/compress', json=send_data)
-        transaction_id = str(r.json()['transaction_id'])
-        output_log_widget.visible = True
-        wait(lambda: get_status(transaction_id), waiting_for="download to be ready")
-        transaction_id_data = transaction_id + "_data"
-        transaction_data_url = get_data(transaction_id_data)['download_url']
-        output_log_widget.text = str(f'<a href="{transaction_data_url}">Download</a>')
+        try: 
+            r = requests.post(f'https://{api_host}/api/compress', json=send_data)
+            transaction_id = str(r.json()['transaction_id'])
+            output_log_widget.visible = True
+            wait(lambda: get_status(transaction_id), waiting_for="download to be ready")
+            transaction_id_data = transaction_id + "_data"
+            transaction_data_url = get_data(transaction_id_data)['download_url']
+            output_log_widget.text = str(f'<a href="{transaction_data_url}">Download</a>')
+            logger.debug(f'succes in compressing: {send_data}')
+        except:
+            logger.debug(f'transaction failed sending datya: {send_data}')
 
     download.on_click(show_hide_export)
 
