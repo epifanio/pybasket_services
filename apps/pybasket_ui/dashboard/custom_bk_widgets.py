@@ -208,7 +208,7 @@ def export_widget(current_doc, widget, json_data, advanced=False):
 
     def compress_selection(widget, json_data, output_log_widget):
         selected_data = get_selection(widget, json_data)
-        for i in data:
+        for i in selected_data:
             nc_url = selected_data[i]['resources']['opendap'][0]
             try:
                 xr.open_dataset(nc_url, decode_cf=False)
