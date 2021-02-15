@@ -278,4 +278,4 @@ def export_widget(current_doc, widget, json_data, advanced=False):
 
     export_layout.visible = False
 
-    return column(download, export_layout)
+    return column(row(Div(text='<font size = "4" color = "darkslategray" ><b>Processing Toolbox <b></font>'), download), export_layout)
