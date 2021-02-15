@@ -10,6 +10,7 @@ from fontawesome.fontawesome_icon import FontAwesomeIcon
 from json2html import *
 from ast import literal_eval
 import os
+import xarray as xr
 
 from log_util import setup_log, get_logpath
 
@@ -53,7 +54,7 @@ def meta_button(metadata_dict, host_layout, content_type='metadata'):
     if content_type == 'plot':
         plot_endpoint = os.environ['PLOT_ENDPOINT']  # 'https://ncplot.epinux.com/test/TS-Plot'
         plot_url = literal_eval(metadata_dict)['resources']['opendap'][0]
-        content = 'placeholder' #f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
+        content = f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
         icon_name = "line-chart"
     host_layout.children[0].text = content
 
@@ -207,6 +208,14 @@ def export_widget(current_doc, widget, json_data, advanced=False):
 
     def compress_selection(widget, json_data, output_log_widget):
         selected_data = get_selection(widget, json_data)
+        for i in data:
+            nc_url = selected_data[i]['resources']['opendap'][0]
+            try:
+                xr.open_dataset(nc_url, decode_cf=False)
+            except RuntimeError:
+                logger.debug(f'failed to load resource: {nc_url}')
+                del selected_data[i]
+                logger.debug(f'removing {nc_url} from selected datasources')
         logger.debug(f'attempt to compress: {selected_data}')
         send_data = {'data': selected_data,
                      'email': json_data['email'],
