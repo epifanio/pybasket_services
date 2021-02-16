@@ -3,3 +3,6 @@ venv/
 apps/pybasket_ui/node_modules/
 apps/redis/data/dump.rdb
 apps/redis/data/appendonly.aof
+*.pyc
+apps/redis/data/*
+*__pycache__/
