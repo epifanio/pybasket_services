@@ -32,6 +32,14 @@ class Datasource(BaseModel):
                                         }
                                     },
                                     "id4": {
+                                        "title": "itp01_itp1grd2042",
+                                        "feature_type": "NA",
+                                        "resources": {
+                                            "opendap": [
+                                                "http://hyrax.epinux.com/opendap/hyrax/local_data/itp01_itp1grd2042.nc"]
+                                        }
+                                    },
+                                    "id5": {
                                         "title": "ctdiaoos gi2007 2009",
                                         "feature_type": "timeSeriesProfile",
                                         "resources": {

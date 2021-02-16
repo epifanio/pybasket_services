@@ -25,9 +25,11 @@ def get_selection(widget, json_data):
                     i.children[0].children[0].active]
     tsp_selected = [i.children[0].children[0].labels[0] for i in widget.children[2].children[2].children if
                     i.children[0].children[0].active]
-    print(ts_selected, p_selected, tsp_selected)
+    na_selected = [i.children[0].children[0].labels[0] for i in widget.children[3].children[2].children if
+                    i.children[0].children[0].active]
+    print(ts_selected, p_selected, tsp_selected, na_selected)
     return {i: json_data['data'][i] for i in json_data['data'] if
-            json_data['data'][i]['title'] in ts_selected + p_selected + tsp_selected}
+            json_data['data'][i]['title'] in ts_selected + p_selected + tsp_selected + na_selected}
 
 
 def get_status(transaction_id):
@@ -57,6 +59,9 @@ def meta_button(metadata_dict, host_layout, content_type='metadata'):
         plot_endpoint = os.environ['PLOT_ENDPOINT']  # 'https://ncplot.epinux.com/test/TS-Plot'
         plot_url = literal_eval(metadata_dict)['resources']['opendap'][0]
         content = f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
+        icon_name = "line-chart"
+    if content_type == 'NA':
+        content = 'Plotting routine not implemented for this featureType'
         icon_name = "line-chart"
     host_layout.children[0].text = content
 
@@ -135,6 +140,23 @@ def custom_checkbox(json_data):
                              tsp_dict])
 
 
+    # NA
+    na_dict = {data_id: json_data['data'][data_id] for data_id in
+                json_data['data'] if
+                json_data['data'][data_id]['feature_type'] == 'NA'}    
+    na_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in na_dict}
+    na_info_btns = {data_id: meta_button(str(na_dict[data_id]), na_info_layouts[data_id], 'metadata') for data_id in
+                     na_dict}
+    na_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in na_dict}
+    na_plot_btns = {data_id: meta_button(str(na_dict[data_id]), na_plot_layouts[data_id], 'NA') for data_id in
+                     na_dict}
+    na_checkboxes = column([column(row(CheckboxGroup(labels=[na_dict[data_id]['title']],
+                                                      css_classes=['bk-bs-checkbox']),
+                                        na_info_btns[data_id], na_plot_btns[data_id]),
+                                    column([na_info_layouts[data_id], na_plot_layouts[data_id]])) for data_id in
+                             na_dict])    
+
+
     if len(ts_checkboxes.children) >= 1:
         ts_label = Div(text='<b>Time Series :</b>', css_classes=['custom_label'])
     else:
@@ -147,9 +169,14 @@ def custom_checkbox(json_data):
         tsp_label = Div(text='<b>Time Series Profile :</b>', css_classes=['custom_label'])
     else:
         tsp_label = Div(text='')
+    if len(na_checkboxes.children) >= 1:
+        na_label = Div(text='<b>Others :</b>', css_classes=['custom_label'])
+    else:
+        na_label = Div(text='')
     multi_select = column(column(ts_label, Spacer(width=20), ts_checkboxes),
                           column(p_label, Spacer(width=20), p_checkboxes),
                           column(tsp_label, Spacer(width=20), tsp_checkboxes),
+                          column(na_label, Spacer(width=20), na_checkboxes),
                           Spacer(height=20))
 
     return multi_select
