@@ -21,11 +21,13 @@ logger = setup_log('custom_checkbox', logtype='stream')
 def get_selection(widget, json_data):
     ts_selected = [i.children[0].children[0].labels[0] for i in widget.children[0].children[2].children if
                    i.children[0].children[0].active]
-    tsp_selected = [i.children[0].children[0].labels[0] for i in widget.children[1].children[2].children if
+    p_selected = [i.children[0].children[0].labels[0] for i in widget.children[1].children[2].children if
                     i.children[0].children[0].active]
-    print(ts_selected, tsp_selected)
+    tsp_selected = [i.children[0].children[0].labels[0] for i in widget.children[2].children[2].children if
+                    i.children[0].children[0].active]
+    print(ts_selected, p_selected, tsp_selected)
     return {i: json_data['data'][i] for i in json_data['data'] if
-            json_data['data'][i]['title'] in ts_selected + tsp_selected}
+            json_data['data'][i]['title'] in ts_selected + p_selected + tsp_selected}
 
 
 def get_status(transaction_id):
@@ -83,58 +85,70 @@ def custom_checkbox(json_data):
     plot_layout = row(Div(text='host'))
     plot_layout.visible = False
 
+    # timeSereies
     ts_dict = {data_id: json_data['data'][data_id] for data_id in
                json_data['data'] if
                json_data['data'][data_id]['feature_type'] == 'timeSeries'}
-    tsp_dict = {data_id: json_data['data'][data_id] for data_id in
-                json_data['data'] if
-                json_data['data'][data_id]['feature_type'] == 'timeSeriesProfile'}
-
     ts_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in ts_dict}
-    tsp_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in tsp_dict}
-
     ts_info_btns = {data_id: meta_button(str(ts_dict[data_id]), ts_info_layouts[data_id], 'metadata') for data_id in
                     ts_dict}
-
-    tsp_info_btns = {data_id: meta_button(str(tsp_dict[data_id]), tsp_info_layouts[data_id], 'metadata') for data_id in
-                     tsp_dict}
-
     ts_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in ts_dict}
-    tsp_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in tsp_dict}
-
     ts_plot_btns = {data_id: meta_button(str(ts_dict[data_id]), ts_plot_layouts[data_id], 'plot') for data_id in
                     ts_dict}
-
-    tsp_plot_btns = {data_id: meta_button(str(tsp_dict[data_id]), tsp_plot_layouts[data_id], 'plot') for data_id in
-                     tsp_dict}
-
     ts_checkboxes = column([column(row(CheckboxGroup(labels=[ts_dict[data_id]['title']],
                                                      css_classes=['bk-bs-checkbox']),
                                        ts_info_btns[data_id], ts_plot_btns[data_id]),
                                    column([ts_info_layouts[data_id], ts_plot_layouts[data_id]])) for data_id in
                             ts_dict])
 
+    # profile
+    p_dict = {data_id: json_data['data'][data_id] for data_id in
+               json_data['data'] if
+               json_data['data'][data_id]['feature_type'] == 'profile'}
+    p_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in p_dict}
+    p_info_btns = {data_id: meta_button(str(p_dict[data_id]), p_info_layouts[data_id], 'metadata') for data_id in
+                    p_dict}
+    p_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in p_dict}
+    p_plot_btns = {data_id: meta_button(str(p_dict[data_id]), p_plot_layouts[data_id], 'plot') for data_id in
+                    p_dict}
+    p_checkboxes = column([column(row(CheckboxGroup(labels=[p_dict[data_id]['title']],
+                                                     css_classes=['bk-bs-checkbox']),
+                                       p_info_btns[data_id], p_plot_btns[data_id]),
+                                   column([p_info_layouts[data_id], p_plot_layouts[data_id]])) for data_id in
+                            p_dict])
+
+
+    # timeSeriesProfile
+    tsp_dict = {data_id: json_data['data'][data_id] for data_id in
+                json_data['data'] if
+                json_data['data'][data_id]['feature_type'] == 'timeSeriesProfile'}    
+    tsp_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in tsp_dict}
+    tsp_info_btns = {data_id: meta_button(str(tsp_dict[data_id]), tsp_info_layouts[data_id], 'metadata') for data_id in
+                     tsp_dict}
+    tsp_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in tsp_dict}
+    tsp_plot_btns = {data_id: meta_button(str(tsp_dict[data_id]), tsp_plot_layouts[data_id], 'plot') for data_id in
+                     tsp_dict}
     tsp_checkboxes = column([column(row(CheckboxGroup(labels=[tsp_dict[data_id]['title']],
                                                       css_classes=['bk-bs-checkbox']),
                                         tsp_info_btns[data_id], tsp_plot_btns[data_id]),
                                     column([tsp_info_layouts[data_id], tsp_plot_layouts[data_id]])) for data_id in
                              tsp_dict])
 
-    # tsp_checkboxes = column([column(row(CheckboxGroup(labels=[tsp_dict[data_id]['title']],
-    #                                                  css_classes=['bk-bs-checkbox']),
-    #                                    tsp_info_btns[data_id], tsp_plot_btns[data_id]),
-    #                                column([tsp_info_layouts[data_id], plot_layout])) for data_id in
-    #                         tsp_dict])
 
     if len(ts_checkboxes.children) >= 1:
         ts_label = Div(text='<b>Time Series :</b>', css_classes=['custom_label'])
     else:
         ts_label = Div(text='')
+    if len(p_checkboxes.children) >= 1:
+        p_label = Div(text='<b>Profile :</b>', css_classes=['custom_label'])
+    else:
+        p_label = Div(text='')
     if len(tsp_checkboxes.children) >= 1:
         tsp_label = Div(text='<b>Time Series Profile :</b>', css_classes=['custom_label'])
     else:
         tsp_label = Div(text='')
     multi_select = column(column(ts_label, Spacer(width=20), ts_checkboxes),
+                          column(p_label, Spacer(width=20), p_checkboxes),
                           column(tsp_label, Spacer(width=20), tsp_checkboxes),
                           Spacer(height=20))
 
