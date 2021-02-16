@@ -31,3 +31,6 @@ async def enqueue_compress(dl: Datasource):
     set_data(transaction_id, status)
     fake_compress.delay(dl.data, dl.email, transaction_id)
     return {"transaction_id": transaction_id}
+
+
+# TODO: add a api method covered by log-in which can be used to clean-up the download forlder from expired downloads
