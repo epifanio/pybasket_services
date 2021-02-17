@@ -99,7 +99,7 @@ services:
     build:
       context: ./docker/bokeh
     environment:
-      BOKEH_ALLOW_WS_ORIGIN: 'bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no'
+      BOKEH_ALLOW_WS_ORIGIN: 'bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no,nbs-staging.met.no,cvl.eo.esa.int'
       PORT: '7000'
       LOG_LEVEL: 'debug'
       API_HOST: "metsis.metsis-api.met.no"
