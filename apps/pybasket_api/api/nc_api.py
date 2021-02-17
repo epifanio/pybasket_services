@@ -8,6 +8,7 @@ import uuid
 import base64
 from infrastructure.api_cache import set_data
 router = fastapi.APIRouter()
+import os
 
 
 @router.post('/api/post_datasource',
@@ -28,7 +29,7 @@ async def enqueue_compress(dl: Datasource):
     print("#################################   ", transaction_id, dl.data)
     # TODO: set NOW the status of the transaction to 'in-progress' by adding a new data key 'status'
     status = {"status": False}
-    set_data(transaction_id, status)
+    set_data(transaction_id=transaction_id, data=status, password=os.environ['REDIS_PASSWORD'])
     fake_compress.delay(dl.data, dl.email, transaction_id)
     return {"transaction_id": transaction_id}
 

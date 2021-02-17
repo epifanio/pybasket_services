@@ -14,7 +14,6 @@ import xarray as xr
 
 from log_util import setup_log, get_logpath
 
-
 logger = setup_log('custom_checkbox', logtype='stream')
 
 
@@ -22,18 +21,18 @@ def get_selection(widget, json_data):
     ts_selected = [i.children[0].children[0].labels[0] for i in widget.children[0].children[2].children if
                    i.children[0].children[0].active]
     p_selected = [i.children[0].children[0].labels[0] for i in widget.children[1].children[2].children if
-                    i.children[0].children[0].active]
+                  i.children[0].children[0].active]
     tsp_selected = [i.children[0].children[0].labels[0] for i in widget.children[2].children[2].children if
                     i.children[0].children[0].active]
     na_selected = [i.children[0].children[0].labels[0] for i in widget.children[3].children[2].children if
-                    i.children[0].children[0].active]
+                   i.children[0].children[0].active]
     print(ts_selected, p_selected, tsp_selected, na_selected)
     return {i: json_data['data'][i] for i in json_data['data'] if
             json_data['data'][i]['title'] in ts_selected + p_selected + tsp_selected + na_selected}
 
 
-def get_status(transaction_id):
-    if get_data(transaction_id)['status']:
+def get_status(transaction_id, password):
+    if get_data(transaction_id=transaction_id, password=password)['status']:
         return True
     return False
 
@@ -108,25 +107,24 @@ def custom_checkbox(json_data):
 
     # profile
     p_dict = {data_id: json_data['data'][data_id] for data_id in
-               json_data['data'] if
-               json_data['data'][data_id]['feature_type'] == 'profile'}
+              json_data['data'] if
+              json_data['data'][data_id]['feature_type'] == 'profile'}
     p_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in p_dict}
     p_info_btns = {data_id: meta_button(str(p_dict[data_id]), p_info_layouts[data_id], 'metadata') for data_id in
-                    p_dict}
+                   p_dict}
     p_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in p_dict}
     p_plot_btns = {data_id: meta_button(str(p_dict[data_id]), p_plot_layouts[data_id], 'plot') for data_id in
-                    p_dict}
+                   p_dict}
     p_checkboxes = column([column(row(CheckboxGroup(labels=[p_dict[data_id]['title']],
-                                                     css_classes=['bk-bs-checkbox']),
-                                       p_info_btns[data_id], p_plot_btns[data_id]),
-                                   column([p_info_layouts[data_id], p_plot_layouts[data_id]])) for data_id in
-                            p_dict])
-
+                                                    css_classes=['bk-bs-checkbox']),
+                                      p_info_btns[data_id], p_plot_btns[data_id]),
+                                  column([p_info_layouts[data_id], p_plot_layouts[data_id]])) for data_id in
+                           p_dict])
 
     # timeSeriesProfile
     tsp_dict = {data_id: json_data['data'][data_id] for data_id in
                 json_data['data'] if
-                json_data['data'][data_id]['feature_type'] == 'timeSeriesProfile'}    
+                json_data['data'][data_id]['feature_type'] == 'timeSeriesProfile'}
     tsp_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in tsp_dict}
     tsp_info_btns = {data_id: meta_button(str(tsp_dict[data_id]), tsp_info_layouts[data_id], 'metadata') for data_id in
                      tsp_dict}
@@ -139,23 +137,21 @@ def custom_checkbox(json_data):
                                     column([tsp_info_layouts[data_id], tsp_plot_layouts[data_id]])) for data_id in
                              tsp_dict])
 
-
     # NA
     na_dict = {data_id: json_data['data'][data_id] for data_id in
-                json_data['data'] if
-                json_data['data'][data_id]['feature_type'] == 'NA'}    
+               json_data['data'] if
+               json_data['data'][data_id]['feature_type'] == 'NA'}
     na_info_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in na_dict}
     na_info_btns = {data_id: meta_button(str(na_dict[data_id]), na_info_layouts[data_id], 'metadata') for data_id in
-                     na_dict}
+                    na_dict}
     na_plot_layouts = {data_id: row(Div(text='host'), visible=False) for data_id in na_dict}
     na_plot_btns = {data_id: meta_button(str(na_dict[data_id]), na_plot_layouts[data_id], 'NA') for data_id in
-                     na_dict}
+                    na_dict}
     na_checkboxes = column([column(row(CheckboxGroup(labels=[na_dict[data_id]['title']],
-                                                      css_classes=['bk-bs-checkbox']),
-                                        na_info_btns[data_id], na_plot_btns[data_id]),
-                                    column([na_info_layouts[data_id], na_plot_layouts[data_id]])) for data_id in
-                             na_dict])    
-
+                                                     css_classes=['bk-bs-checkbox']),
+                                       na_info_btns[data_id], na_plot_btns[data_id]),
+                                   column([na_info_layouts[data_id], na_plot_layouts[data_id]])) for data_id in
+                            na_dict])
 
     if len(ts_checkboxes.children) >= 1:
         ts_label = Div(text='<b>Time Series :</b>', css_classes=['custom_label'])
@@ -266,13 +262,13 @@ def export_widget(current_doc, widget, json_data, advanced=False):
         logger.debug(f'using api host: {api_host}')
         # api_host = 'metsis.epinux.com'
         # r = requests.post('http://10.0.0.100:8000/api/compress', json=send_data)
-        try: 
+        try:
             r = requests.post(f'https://{api_host}/api/compress', json=send_data)
             transaction_id = str(r.json()['transaction_id'])
             output_log_widget.visible = True
-            wait(lambda: get_status(transaction_id), waiting_for="download to be ready")
+            wait(lambda: get_status(transaction_id=transaction_id, password=os.environ['REDIS_PASSWORD']), waiting_for="download to be ready")
             transaction_id_data = transaction_id + "_data"
-            transaction_data_url = get_data(transaction_id_data)['download_url']
+            transaction_data_url = get_data(transaction_id=transaction_id_data, password=os.environ['REDIS_PASSWORD'])['download_url']
             output_log_widget.text = str(f'<a href="{transaction_data_url}">Download</a>')
             logger.debug(f'succes in compressing: {send_data}')
         except:
@@ -319,4 +315,6 @@ def export_widget(current_doc, widget, json_data, advanced=False):
 
     export_layout.visible = False
 
-    return column(column(Div(text='<font size = "4" color = "darkslategray" ><b>Processing Toolbox <b></font>'), download), export_layout)
+    return column(
+        column(Div(text='<font size = "4" color = "darkslategray" ><b>Processing Toolbox <b></font>'), download),
+        export_layout)

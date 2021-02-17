@@ -81,10 +81,10 @@ def fake_compress(data, email_to, transaction_id):
                              url=url)
     data['download_url'] = url
     transaction_id_data = transaction_id + "_data"
-    set_data(transaction_id_data, data)
+    set_data(transaction_id=transaction_id_data, data=data, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
     time.sleep(1)
     status = {"status": True}
-    set_data(transaction_id, status)
+    set_data(transaction_id=transaction_id, data=status, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
     print(url, transaction_id, data)
 
 

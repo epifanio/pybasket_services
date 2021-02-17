@@ -11,11 +11,11 @@ services:
         PYTHONUNBUFFERED: 1
         LOGLEVEL: DEBUG
         RABBIT_HOST: "pyamqp://guest@rabbit//"
-        API_HOST: "metsis.metsis-api.met.no"
-        UI_HOST: "bokeh.metsis-api.met.no"
+        API_HOST: "metsis.epinux.com"
+        UI_HOST: "bokeh.epinux.com"
         PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
         FORWARDED_ALLOW_IPS: "*"
-        REDIS_PASSWORD: ''
+        REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
     volumes:
       - ./apps/pybasket_api:/app
     ports:
@@ -69,10 +69,10 @@ services:
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
       RABBIT_HOST: "pyamqp://guest@rabbit//"
-      API_HOST: "metsis.metsis-api.met.no"
-      UI_HOST: "bokeh.metsis-api.met.no"
+      API_HOST: "metsis.epinux.com"
+      UI_HOST: "bokeh.epinux.com"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
-      REDIS_PASSWORD: ''
+      REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
     volumes:
       - ./apps/pybasket_api:/app
     entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
@@ -99,13 +99,13 @@ services:
     build:
       context: ./docker/bokeh
     environment:
-      BOKEH_ALLOW_WS_ORIGIN: 'bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no,nbs-staging.met.no,cvl.eo.esa.int'
+      BOKEH_ALLOW_WS_ORIGIN: 'metsis.epinux.com,metsis-dev.local,bokeh.epinux.com,demosearch.metsis.met.no'
       PORT: '7000'
       LOG_LEVEL: 'debug'
-      API_HOST: "metsis.metsis-api.met.no"
-      UI_HOST: "bokeh.metsis-api.met.no"
+      API_HOST: "metsis.epinux.com"
+      UI_HOST: "bokeh.epinux.com"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
-      REDIS_PASSWORD: ''
+      REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
     volumes:
       - ./apps/pybasket_ui/dashboard:/pybasket_ui
       - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
@@ -118,9 +118,6 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: 5s
-        # max_attempts: 5
-        # window: 240s
       resources:
         #limits:
         #  cpus: '0.50'
@@ -167,4 +164,3 @@ networks:
     attachable: true
   traefik-public:
     external: true
-
