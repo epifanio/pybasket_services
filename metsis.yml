@@ -15,6 +15,7 @@ services:
         UI_HOST: "bokeh.metsis-api.met.no"
         PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
         FORWARDED_ALLOW_IPS: "*"
+        REDIS_PASSWORD: ''
     volumes:
       - ./apps/pybasket_api:/app
     ports:
@@ -71,6 +72,7 @@ services:
       API_HOST: "metsis.metsis-api.met.no"
       UI_HOST: "bokeh.metsis-api.met.no"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+      REDIS_PASSWORD: ''
     volumes:
       - ./apps/pybasket_api:/app
     entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
@@ -103,6 +105,7 @@ services:
       API_HOST: "metsis.metsis-api.met.no"
       UI_HOST: "bokeh.metsis-api.met.no"
       PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+      REDIS_PASSWORD: ''
     volumes:
       - ./apps/pybasket_ui/dashboard:/pybasket_ui
       - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
