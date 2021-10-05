@@ -7,3 +7,4 @@ apps/redis/data/appendonly.aof
 apps/redis/data/*
 *__pycache__/
 apps/pybasket_api/download/*.zip
+.scratch/
