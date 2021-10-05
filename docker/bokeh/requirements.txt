@@ -1,2 +1,9 @@
 json2html
 waiting
+ipyleaflet
+panel
+holoviews
+geoviews
+datashader
+bokeh
+ipywidgets_bokeh

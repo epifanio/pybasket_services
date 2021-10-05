@@ -26,6 +26,7 @@ import xarray as xr
 
 from infrastructure.api_cache import set_data
 import os
+import yaml
 
 rabbit_host = os.environ['RABBIT_HOST']
 api_host = os.environ['API_HOST']
@@ -34,6 +35,61 @@ download_dir = os.environ['DOWNLOAD_DIR']
 celery_app = Celery('tasks', broker=rabbit_host)
 
 logger = get_task_logger(__name__)
+
+
+@celery_app.task
+def generate_spec2(data, transaction_id, download_token):
+    # here I generete the download token from the post API, this way i can reuse the same token as download id
+    # rv = base64.b64encode(uuid.uuid4().bytes).decode('utf-8')
+    # unique = re.sub(r'[\=\+\/]', lambda m: {'+': '-', '/': '_', '=': ''}[m.group(0)], rv)
+    filename = str(transaction_id) + '.yaml'
+    outfile = Path(download_dir, str(filename))
+    #s = TimestampSigner('secret-key')
+    #download_token = s.sign(transaction_id).decode()
+    with  open(outfile, "w+") as yaml_file:
+        yaml.dump(data, yaml_file, allow_unicode=True)
+
+    env = Environment(loader=FileSystemLoader("""/app/templates"""))
+    template = env.get_template('download/mail_download.html')
+    url = f'https://{api_host}/api/download/{download_token}'
+    output = template.render(data=data,
+                             date=dt.datetime.now().isoformat(),
+                             url=url)
+    data['download_url'] = url
+    transaction_id_data = transaction_id + "_data"
+    set_data(transaction_id=transaction_id_data, data=data, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
+    time.sleep(1)
+    status = {"status": True}
+    set_data(transaction_id=transaction_id, data=status, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
+    print(url, transaction_id, data)
+
+
+@celery_app.task
+def generate_spec(data, transaction_id):
+    rv = base64.b64encode(uuid.uuid4().bytes).decode('utf-8')
+    unique = re.sub(r'[\=\+\/]', lambda m: {'+': '-', '/': '_', '=': ''}[m.group(0)], rv)
+    filename = str(unique) + '.yaml'
+    outfile = Path(download_dir, str(filename))
+    s = TimestampSigner('secret-key')
+    download_token = s.sign(filename).decode()
+    with  open(outfile, "w+") as yaml_file:
+        yaml.dump(data, yaml_file, allow_unicode=True)
+
+    env = Environment(loader=FileSystemLoader("""/app/templates"""))
+    template = env.get_template('download/mail_download.html')
+    url = f'https://{api_host}/api/download/{download_token}'
+    output = template.render(data=data,
+                             date=dt.datetime.now().isoformat(),
+                             url=url)
+    data['download_url'] = url
+    transaction_id_data = transaction_id + "_data"
+    set_data(transaction_id=transaction_id_data, data=data, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
+    time.sleep(1)
+    status = {"status": True}
+    set_data(transaction_id=transaction_id, data=status, redishost='redismod', password=os.environ['REDIS_PASSWORD'])
+    print(url, transaction_id, data)
+
+
 
 
 # try:
@@ -55,6 +111,11 @@ def fake_compress(data, email_to, transaction_id):
     s = TimestampSigner('secret-key')
     download_token = s.sign(filename).decode()
     zip_file = zipfile.ZipFile(outfile, 'a')
+    yaml_filename = str(unique) + '.yaml'
+    yaml_outfile = Path(download_dir, str(yaml_filename))
+    with  open(yaml_outfile, "w+") as yaml_file:
+        yaml.dump(data, yaml_file, allow_unicode=True)
+    zip_file.write(yaml_outfile, os.path.basename(yaml_outfile))
     for i in data:
         nc_url = data[i]['resources']['opendap'][0]
         logger.info(f"processing {i} in {filename}")

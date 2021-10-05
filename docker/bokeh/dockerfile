@@ -1,4 +1,4 @@
-FROM epinux/pybasket_api
+FROM epinux/fastapi
 
 LABEL maintainer="massimods@met.no"
 
@@ -7,12 +7,21 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y software-properties-common curl && curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y --no-install-recommends nodejs 
 
+RUN apt-get install -y libproj-dev libgeos-dev proj-bin proj-data
+
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install dependencies:
 COPY requirements.txt .
 RUN pip install -U pip
 RUN pip install -r requirements.txt
+
+RUN pip install ipyleaflet
+RUN pip install owslib
+RUN pip install geolinks
+RUN pip install ipydatetime
+RUN pip install git+https://github.com/bokeh/ipywidgets_bokeh
+
 
 
 COPY entrypoint.sh /entrypoint.sh
