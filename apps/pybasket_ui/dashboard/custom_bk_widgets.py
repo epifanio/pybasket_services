@@ -60,8 +60,14 @@ def meta_button(metadata_dict, host_layout, content_type='metadata'):
         content = f'<iframe src="{plot_endpoint}?url={plot_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
         icon_name = "line-chart"
     if content_type == 'NA':
-        content = 'Plotting routine not implemented for this featureType'
+        if 'OGC:WMS' in literal_eval(metadata_dict)['resources']:
+            wms_endpoint = os.environ['WMS_ENDPOINT']  # 'https://bokeh.metsis-api.met.no/GISPY'
+            wms_url = literal_eval(metadata_dict)['resources']['OGC:WMS'][0]
+            content = f'<iframe src="{wms_endpoint}?url={wms_url}" width="1225" height="725" frameborder=0 scrolling=no></iframe>'
+        else:
+            content = 'Plotting routine not implemented for this featureType'
         icon_name = "line-chart"
+
     host_layout.children[0].text = content
 
     def show_hide_metadata(event):
@@ -104,7 +110,7 @@ def custom_checkbox(json_data):
                                        ts_info_btns[data_id], ts_plot_btns[data_id]),
                                    column([ts_info_layouts[data_id], ts_plot_layouts[data_id]])) for data_id in
                             ts_dict])
-
+    ####
     # profile
     p_dict = {data_id: json_data['data'][data_id] for data_id in
               json_data['data'] if
@@ -120,7 +126,7 @@ def custom_checkbox(json_data):
                                       p_info_btns[data_id], p_plot_btns[data_id]),
                                   column([p_info_layouts[data_id], p_plot_layouts[data_id]])) for data_id in
                            p_dict])
-
+    ####
     # timeSeriesProfile
     tsp_dict = {data_id: json_data['data'][data_id] for data_id in
                 json_data['data'] if
@@ -136,7 +142,7 @@ def custom_checkbox(json_data):
                                         tsp_info_btns[data_id], tsp_plot_btns[data_id]),
                                     column([tsp_info_layouts[data_id], tsp_plot_layouts[data_id]])) for data_id in
                              tsp_dict])
-
+    ####
     # NA
     na_dict = {data_id: json_data['data'][data_id] for data_id in
                json_data['data'] if
@@ -152,7 +158,8 @@ def custom_checkbox(json_data):
                                        na_info_btns[data_id], na_plot_btns[data_id]),
                                    column([na_info_layouts[data_id], na_plot_layouts[data_id]])) for data_id in
                             na_dict])
-
+    # WMS
+    ######
     if len(ts_checkboxes.children) >= 1:
         ts_label = Div(text='<b>Time Series :</b>', css_classes=['custom_label'])
     else:
