@@ -250,14 +250,37 @@ def export_widget(current_doc, widget, json_data, advanced=False):
             export_layout.visible = True
             fake_div.visible = False
 
+
+    def generate_spec(widget, json_data, output_log_widget):
+        selected_data = get_selection(widget, json_data)
+        send_data = {'data': selected_data,
+                     'email': json_data['email'],
+                     'project': json_data['project']}
+        api_host = os.environ['API_HOST']
+        logger.debug(f'using api host: {api_host}')
+        
+        output_log_widget.visible = True
+        output_log_widget.text = str(f'{selected_data} - {output_type_radio_group.active}') 
+
+    #def generate_ipynb(widget, json_data, output_log_widget):
+    #    selected_data = get_selection(widget, json_data)
+
+    #    output_log_widget.visible = True
+    #    output_log_widget.text = str(f'{selected_data} - {output_type_radio_group.active}')
+
+
     def compress_selection(widget, json_data, output_log_widget):
         selected_data = get_selection(widget, json_data)
-        for i in selected_data:
+        for i in selected_data.copy():
             nc_url = selected_data[i]['resources']['opendap'][0]
             try:
                 xr.open_dataset(nc_url, decode_cf=False)
             except RuntimeError:
-                logger.debug(f'failed to load resource: {nc_url}')
+                logger.debug(f'failed to load (invalid) resource: {nc_url}')
+                del selected_data[i]
+                logger.debug(f'removing {nc_url} from selected datasources')
+            except OSError:
+                logger.debug(f'failed to load (missing) resource: {nc_url}')
                 del selected_data[i]
                 logger.debug(f'removing {nc_url} from selected datasources')
         logger.debug(f'attempt to compress: {selected_data}')
@@ -269,8 +292,14 @@ def export_widget(current_doc, widget, json_data, advanced=False):
         logger.debug(f'using api host: {api_host}')
         # api_host = 'metsis.epinux.com'
         # r = requests.post('http://10.0.0.100:8000/api/compress', json=send_data)
+        if output_type_radio_group.active == 0:
+            api_call = "getspec"
+        if output_type_radio_group.active == 1:
+            api_call = "compress"
+        if output_type_radio_group.active == 2:
+            api_call = "getspec2"
         try:
-            r = requests.post(f'https://{api_host}/api/compress', json=send_data)
+            r = requests.post(f'https://{api_host}/api/{api_call}', json=send_data)
             transaction_id = str(r.json()['transaction_id'])
             output_log_widget.visible = True
             wait(lambda: get_status(transaction_id=transaction_id, password=os.environ['REDIS_PASSWORD']), waiting_for="download to be ready")
@@ -279,22 +308,46 @@ def export_widget(current_doc, widget, json_data, advanced=False):
             output_log_widget.text = str(f'<a href="{transaction_data_url}">Download</a>')
             logger.debug(f'succes in compressing: {send_data}')
         except:
-            logger.debug(f'transaction failed sending datya: {send_data}')
+            logger.debug(f'transaction failed sending data: {send_data}')
 
     download.on_click(show_hide_export)
 
-    def compress_selection_callback(widget, json_data, output_log_widget):
-        output_log_widget.text = str(
-            '<marquee behavior="scroll" direction="left"><b>. . . processing . . .</b></marquee>')
-        current_doc.add_next_tick_callback(functools.partial(compress_selection,
-                                                             widget=widget,
-                                                             json_data=json_data,
-                                                             output_log_widget=output_log_widget))
 
-    export_button.on_click(functools.partial(compress_selection_callback,
+    def export_selection_callback(widget, json_data, output_log_widget):
+        #if output_type_radio_group.active == 0:
+        #    output_log_widget.text = str(
+        #        f'<marquee behavior="scroll" direction="left"><b>. . . processing . . .</b></marquee>')
+        #    current_doc.add_next_tick_callback(functools.partial(generate_spec,
+        #                                                        widget=widget,
+        #                                                        json_data=json_data,
+        #                                                        output_log_widget=output_log_widget))            
+        #if output_type_radio_group.active == 1:
+        #    output_log_widget.text = str(
+        #        f'<marquee behavior="scroll" direction="left"><b>. . . processing . . .</b></marquee>')
+        #    current_doc.add_next_tick_callback(functools.partial(generate_ipynb,
+        #                                                        widget=widget,
+        #                                                        json_data=json_data,
+        #                                                        output_log_widget=output_log_widget))  
+        #if output_type_radio_group.active == 1:
+        output_log_widget.text = str(
+            f'<marquee behavior="scroll" direction="left"><b>. . .  processing . . .</b></marquee>')
+        current_doc.add_next_tick_callback(functools.partial(compress_selection,
+                                                            widget=widget,
+                                                            json_data=json_data,
+                                                            output_log_widget=output_log_widget))
+
+    export_button.on_click(functools.partial(export_selection_callback,
                                              widget=widget,
                                              json_data=json_data,
                                              output_log_widget=output_log_widget))
+
+
+    def output_type_handler(new):
+        print('Selected output type ' + str(new) + ' selected.')
+
+    output_type_radio_group = RadioGroup(labels=["data object [Yaml spec file]", "zip including data object and data file"], active=0) #  "ipynb", 
+    output_type_radio_group.on_click(output_type_handler)
+
     if advanced:
         export_layout = row(fake_div, Spacer(width=30),
                             column(Div(text='<font size = "3" color = "darkslategray" ><b>Data Export:<b></font>'),
@@ -313,7 +366,7 @@ def export_widget(current_doc, widget, json_data, advanced=False):
     else:
         export_layout = row(fake_div, Spacer(width=30),
                             column(Spacer(height=30),
-                                   Div(text='<font size = "3" color = "darkslategray" ><b>Data Export:<b></font>'),
+                                   row(Div(text='<font size = "3" color = "darkslategray" ><b>Data Export:<b></font>'), output_type_radio_group),
                                    Spacer(height=10),
                                    row(export_button,
                                        Spacer(width=20),

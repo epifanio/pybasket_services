@@ -66,3 +66,4 @@ class Datasource(BaseModel):
                                 })
     email: str = pydantic.Field(default='me@you.web', example='epiesasha@me.com')
     project: Optional[str] = pydantic.Field(default='METSIS', example='METSIS')
+
