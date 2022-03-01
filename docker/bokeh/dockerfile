@@ -16,11 +16,11 @@ COPY requirements.txt .
 RUN pip install -U pip
 RUN pip install -r requirements.txt
 
-RUN pip install ipyleaflet
+# RUN pip install ipyleaflet
 RUN pip install owslib
 RUN pip install geolinks
 RUN pip install ipydatetime
-RUN pip install git+https://github.com/bokeh/ipywidgets_bokeh
+# RUN pip install git+https://github.com/bokeh/ipywidgets_bokeh
 
 
 
