@@ -21,7 +21,7 @@ RUN pip install owslib
 RUN pip install geolinks
 RUN pip install ipydatetime
 # RUN pip install git+https://github.com/bokeh/ipywidgets_bokeh
-
+RUN pip install shapely
 
 
 COPY entrypoint.sh /entrypoint.sh
