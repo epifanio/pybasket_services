@@ -14,6 +14,7 @@ services:
         API_HOST: "metsis.epinux.com"
         UI_HOST: "bokeh.epinux.com"
         PLOT_ENDPOINT: "https://bokeh.epinux.com/TS-Plot"
+        WMS_ENDPOINT: "https://bokeh.epinux.com/GISPY"
         FORWARDED_ALLOW_IPS: "*"
         REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
     volumes:
@@ -72,6 +73,7 @@ services:
       API_HOST: "metsis.epinux.com"
       UI_HOST: "bokeh.epinux.com"
       PLOT_ENDPOINT: "https://bokeh.epinux.com/TS-Plot"
+      WMS_ENDPOINT: "https://bokeh.epinux.com/GISPY"
       REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
     volumes:
       - ./apps/pybasket_api:/app

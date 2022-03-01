@@ -2,7 +2,8 @@ version: '3.3'
 
 services:
   fastapi:
-    image: epinux/pybasket_api:latest
+    # image: epinux/pybasket_api:latest
+    image: epinux/fastapi:latest
     build:
       context: ./docker/fastapi
     environment:
@@ -13,7 +14,7 @@ services:
         RABBIT_HOST: "pyamqp://guest@rabbit//"
         API_HOST: "metsis.metsis-api.met.no"
         UI_HOST: "bokeh.metsis-api.met.no"
-        PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+        PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
         FORWARDED_ALLOW_IPS: "*"
         REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
     volumes:
@@ -64,15 +65,18 @@ services:
       - net 
   
   worker:
-    image: epinux/pybasket_api:latest
+    # image: epinux/pybasket_api:latest
+    image: epinux/fastapi:latest
     environment: 
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
       RABBIT_HOST: "pyamqp://guest@rabbit//"
       API_HOST: "metsis.metsis-api.met.no"
       UI_HOST: "bokeh.metsis-api.met.no"
-      PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+      PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
+      WMS_ENDPOINT: "https://bokeh.epinux.com/GISPY"
       REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
+      PYTHONUNBUFFERED: 1
     volumes:
       - ./apps/pybasket_api:/app
     entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
@@ -95,19 +99,27 @@ services:
       - traefik-public
 
   bokeh:
-    image: epinux/pybasket_ui:latest
+    # image: epinux/pybasket_ui:latest
+    image: epinux/bokeh:ipyw
     build:
       context: ./docker/bokeh
     environment:
-      BOKEH_ALLOW_WS_ORIGIN: 'bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no,nbs-staging.met.no,cvl.eo.esa.int'
+      BOKEH_ALLOW_WS_ORIGIN: 'metsis-staging.met.no,applicate.met.no,gcw.met.no,saon.met.no,yopp.met.no,nordatanet.no,gcw.met.no,metsis3.met.no,metsis4.met.no,metsis5.met.no,bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no,nbs-staging.met.no,cvl.eo.esa.int,adc.met.no,satellittdata.no,www.satellittdata.no,satellittdata.com,www.satellittdata.com,sios-svalbard.org,www.sios-svalbard.org,157.249.72.82,157.249.75.175,157.249.73.143'
       PORT: '7000'
       LOG_LEVEL: 'debug'
+      BOKEH_LOG_LEVEL: 'debug'
       API_HOST: "metsis.metsis-api.met.no"
       UI_HOST: "bokeh.metsis-api.met.no"
-      PLOT_ENDPOINT: "https://ncplot.epinux.com/test/TS-Plot"
+      PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
+      WMS_ENDPOINT: "https://bokeh.metsis-api.met.no/GISPY"
+      TSPLOT_DOWNLOAD: "/TS-Plot/static/Download"
       REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
+      PYTHONUNBUFFERED: 1
     volumes:
       - ./apps/pybasket_ui/dashboard:/pybasket_ui
+      - ./apps/pybasket_ui/SIE:/SIE
+      - ./apps/pybasket_ui/TS-Plot:/TS-Plot
+      - ./apps/pybasket_ui/GISPY/gispy:/GISPY
       - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
     ports:
       - 7000:7000
