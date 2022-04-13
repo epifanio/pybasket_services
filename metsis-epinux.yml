@@ -109,6 +109,7 @@ services:
       API_HOST: "metsis.epinux.com"
       UI_HOST: "bokeh.epinux.com"
       PLOT_ENDPOINT: "https://bokeh.epinux.com/TS-Plot"
+      WMS_ENDPOINT: "https://bokeh.epinux.com/GISPY"
       REDIS_PASSWORD: "FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp"
       TSPLOT_DOWNLOAD: '/TS-Plot/static/Download'
       PYTHONUNBUFFERED: 1

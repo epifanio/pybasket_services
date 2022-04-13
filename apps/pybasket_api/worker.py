@@ -38,6 +38,13 @@ logger = get_task_logger(__name__)
 
 
 @celery_app.task
+def generate_information_object(data, transaction_id, download_token):
+    # take the selected data including selected notebooks
+    # and store everything following the teplate file available at
+    # 
+    pass
+
+@celery_app.task
 def generate_spec2(data, transaction_id, download_token):
     # here I generete the download token from the post API, this way i can reuse the same token as download id
     # rv = base64.b64encode(uuid.uuid4().bytes).decode('utf-8')

@@ -1,0 +1,35 @@
+PTEP:
+    UseCase_1:
+        notebooks:
+            eodata_search_demo_boto3: https://{link_to}/eodata_search_demo_boto3.ipynb
+            opensearch_python_client: https://{link_to}/opensearch_python_client.ipynb
+            test_sentinelsat: https://{link_to}/test_sentinelsat.ipynb
+            use_case_01_nextsim_result_validation_with_pyresample: https://{link_to}/use_case_01_nextsim_result_validation_with_pyresample.ipynb
+        tags:
+        name:
+            UseCase_1
+    UseCase_2: 
+        notebooks:
+            use_case_02: https://{link_to}/use_case_02.ipynb
+        tags:
+        name:
+            UseCase_2
+    UseCase_3:
+        notebooks:
+            REQ-3300-ArcticAmplification: https://{link_to}/REQ-3300-ArcticAmplification.ipynb
+            csw-query-example: https://{link_to}/csw-query-example.ipynb
+        tags:
+        name:
+            UseCase_3
+    UseCase_4: 
+        notebooks:
+            use_case_04: https://{link_to}/use_case_04.ipynb
+        tags:
+        name:
+            UseCase_4
+    UseCase_5:
+        notebooks:
+            use_case_05: https://{link_to}/use_case_05.ipynb
+        tags:
+        name:
+            UseCase_5
