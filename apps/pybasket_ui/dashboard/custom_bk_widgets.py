@@ -11,6 +11,10 @@ from json2html import *
 from ast import literal_eval
 import os
 import xarray as xr
+import yaml
+from ipywidgets import Box, VBox, Layout
+from ipywidgets_bokeh import IPyWidget
+from ipywidgets import widgets
 
 from log_util import setup_log, get_logpath
 
@@ -176,13 +180,54 @@ def custom_checkbox(json_data):
         na_label = Div(text='<b>Others :</b>', css_classes=['custom_label'])
     else:
         na_label = Div(text='')
+    # NOTEBOOKS
+    parsed_yaml = parse_notebook_config(json_data)
+    print(parsed_yaml)
+    if parsed_yaml is not None:
+        notebooks_box = VBox([i for i in [gen_SelectMultiple(parsed_yaml[list(parsed_yaml.keys())[i]]) for i,v in enumerate(parsed_yaml.keys())]],
+                            layout=Layout(max_height="900px", display='block'))
+        
+        nb_label = Div(text='<b>Notebooks :</b>', css_classes=['custom_label'])
+        wrap_notebooks_box = IPyWidget(widget=notebooks_box, width_policy='fit')
+        nb_selector = column(nb_label, Spacer(width=20), wrap_notebooks_box)
+    else:
+        nb_selector = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+
+    ##
     multi_select = column(column(ts_label, Spacer(width=20), ts_checkboxes),
                           column(p_label, Spacer(width=20), p_checkboxes),
                           column(tsp_label, Spacer(width=20), tsp_checkboxes),
                           column(na_label, Spacer(width=20), na_checkboxes),
+                          nb_selector,
                           Spacer(height=20))
 
     return multi_select
+
+
+def parse_notebook_config(json_data):
+    with open("/pybasket_ui/config/notebooks.yaml", 'r') as stream:
+        try:
+            parsed_yaml=yaml.safe_load(stream)
+            print(parsed_yaml)
+        except yaml.YAMLError as exc:
+            print(exc)
+        if json_data['project'] in parsed_yaml.keys():
+            parsed_yaml = parsed_yaml[json_data['project']]
+        else:
+            parsed_yaml = None
+    return parsed_yaml
+
+def gen_SelectMultiple(use_case_dict):
+    print(use_case_dict)
+    w = widgets.SelectMultiple(
+        options=list(use_case_dict['notebooks'].keys()),
+        value=[],
+        #rows=10,
+        description=use_case_dict['name'],
+        disabled=False,
+        description_tooltip=use_case_dict['name'],
+        )
+    return w
 
 
 def export_widget(current_doc, widget, json_data, advanced=False):
@@ -272,17 +317,18 @@ def export_widget(current_doc, widget, json_data, advanced=False):
     def compress_selection(widget, json_data, output_log_widget):
         selected_data = get_selection(widget, json_data)
         for i in selected_data.copy():
-            nc_url = selected_data[i]['resources']['opendap'][0]
-            try:
-                xr.open_dataset(nc_url, decode_cf=False)
-            except RuntimeError:
-                logger.debug(f'failed to load (invalid) resource: {nc_url}')
-                del selected_data[i]
-                logger.debug(f'removing {nc_url} from selected datasources')
-            except OSError:
-                logger.debug(f'failed to load (missing) resource: {nc_url}')
-                del selected_data[i]
-                logger.debug(f'removing {nc_url} from selected datasources')
+            if 'opendap' in selected_data[i]['resources']:
+                nc_url = selected_data[i]['resources']['opendap'][0]
+                try:
+                    xr.open_dataset(nc_url, decode_cf=False)
+                except RuntimeError:
+                    logger.debug(f'failed to load (invalid) resource: {nc_url}')
+                    del selected_data[i]
+                    logger.debug(f'removing {nc_url} from selected datasources')
+                except OSError:
+                    logger.debug(f'failed to load (missing) resource: {nc_url}')
+                    del selected_data[i]
+                    logger.debug(f'removing {nc_url} from selected datasources')
         logger.debug(f'attempt to compress: {selected_data}')
         send_data = {'data': selected_data,
                      'email': json_data['email'],
@@ -378,3 +424,7 @@ def export_widget(current_doc, widget, json_data, advanced=False):
     return column(
         column(Div(text='<font size = "4" color = "darkslategray" ><b>Processing Toolbox <b></font>'), download),
         export_layout)
+
+
+
+
