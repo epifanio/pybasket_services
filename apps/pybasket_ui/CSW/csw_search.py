@@ -7,6 +7,7 @@ from geolinks import sniff_link
 # code derived from:
 # https://github.com/ioos/notebooks_demos/blob/master/notebooks/2016-12-19-exploring_csw.ipynb
 
+
 def fes_date_filter(start, stop, constraint="overlaps"):
     """
     Take datetime-like objects and returns a fes filter for date range
@@ -74,8 +75,16 @@ def get_csw_records(csw, filter_list, pagesize=10, maxrecords=1000):
         if startposition >= maxrecords:
             break
     csw.records.update(csw_records)
-    
-def csw_query(endpoint, bbox=None, start=None, stop=None, kw_names=None, crs="urn:ogc:def:crs:OGC:1.3:CRS84"):
+
+
+def csw_query(
+    endpoint,
+    bbox=None,
+    start=None,
+    stop=None,
+    kw_names=None,
+    crs="urn:ogc:def:crs:OGC:1.3:CRS84",
+):
     constraints = []
     csw = None
     while csw is None:
@@ -85,43 +94,43 @@ def csw_query(endpoint, bbox=None, start=None, stop=None, kw_names=None, crs="ur
         except:
             pass
     if kw_names:
-        kw = dict(wildCard="*", escapeChar="\\", singleChar="?", propertyname="apiso:AnyText")
-        or_filt = fes.Or([fes.PropertyIsLike(literal=("*%s*" % val), **kw) for val in kw_names])
+        kw = dict(
+            wildCard="*", escapeChar="\\", singleChar="?", propertyname="apiso:AnyText"
+        )
+        or_filt = fes.Or(
+            [fes.PropertyIsLike(literal=("*%s*" % val), **kw) for val in kw_names]
+        )
         constraints.append(or_filt)
-        
-    if all(v is not None for v in [start, stop]): 
+
+    if all(v is not None for v in [start, stop]):
         begin, end = fes_date_filter(start, stop)
         constraints.append(begin)
         constraints.append(end)
-        
+
     if bbox:
         bbox_crs = fes.BBox(bbox, crs=crs)
         constraints.append(bbox_crs)
     if len(constraints) >= 2:
-        filter_list = [
-            fes.And(
-                constraints
-            )
-        ]
+        filter_list = [fes.And(constraints)]
     else:
         filter_list = constraints
     get_csw_records(csw, filter_list, pagesize=10, maxrecords=1000)
 
-    output = ''
+    output = ""
     print("Found {} records.\n".format(len(csw.records.keys())))
     output += "Found {} records.\n".format(len(csw.records.keys()))
-    
+
     for key, value in list(csw.records.items()):
-        print(u"Title: [{}]\nID: {}\n".format(value.title, key))
-        output += '\n'
-        output += u"Title: [{}]\nID: {}\n".format(value.title, key)
+        print("Title: [{}]\nID: {}\n".format(value.title, key))
+        output += "\n"
+        output += "Title: [{}]\nID: {}\n".format(value.title, key)
         msg = "geolink: {geolink}\nscheme: {scheme}\nURL: {url}\n".format
         for ref in value.references:
-            output += '\n'
+            output += "\n"
             print(msg(geolink=sniff_link(ref["url"]), **ref))
             output += msg(geolink=sniff_link(ref["url"]), **ref)
-        print("#########################################################", '\n')
-        output += '\n'
+        print("#########################################################", "\n")
+        output += "\n"
         output += "#########################################################"
-        output += '\n'
+        output += "\n"
     return output
