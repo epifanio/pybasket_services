@@ -1,0 +1,28 @@
+---
+Context:
+  type: {{context.type}}
+  id: {{context.id}}
+Data:
+  {% for dataset in datasets %}
+  - id: {{dataset.id}}
+    title: {{dataset.title}}
+    resource: {{dataset.resource}}
+    type: {{dataset.type}}
+  {% endfor %}
+
+Software:
+    {% for nb in notebooks %}
+    resource: {{nb.resource}}
+    type: Jupyter
+    dependencies:            
+      {% for dep in nb.dependencies %}
+      - name: {{dep.name}}
+        resource: {{dep.resource}}
+        version: {{dep.version}}
+        type: {{dep.type}}
+        dependencies: {{dep.dependencies}}
+      {% endfor %}
+    {% endfor %}
+Environment:
+  provider: {{environment.provider}}
+  processor: {{environment.processsor}}
