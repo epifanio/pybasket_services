@@ -4,6 +4,7 @@ from owslib.wms import WebMapService
 from pyproj import CRS
 from shapely import geometry
 from pyproj.exceptions import CRSError
+
 # from IPython.core.display import display
 
 
@@ -34,6 +35,7 @@ EPSG_4326 = {
 def basemap(prj):
     pass
 
+
 def get_ring(bounds):
     ring_bounds = [
         [bounds[0], bounds[1]],
@@ -51,7 +53,7 @@ def get_crs_intersection(epsg, wms_layer, verbose=False):
         crs_ring = geometry.Polygon(get_ring(crs_bounds))
         wms_ring = geometry.Polygon(get_ring(wms_layer.boundingBoxWGS84))
         if verbose:
-            print(f'{epsg} over {wms_layer.title}')
+            print(f"{epsg} over {wms_layer.title}")
             # display(geometry.GeometryCollection([crs_ring, wms_ring]))
         return (crs_ring.intersection(wms_ring).area / wms_ring.area) * 100
     except CRSError:
@@ -70,7 +72,7 @@ def get_projection(epsg_code):
     if epsg_code == 900913:
         epsg_code = 3857
     if epsg_code in [3857, 3395, 4326, 3413, 3031]:
-        return projections[f'EPSG{epsg_code}']
+        return projections[f"EPSG{epsg_code}"]
     crs = CRS.from_epsg(epsg_code)
     proj = Transformer.from_crs(crs.geodetic_crs, crs)
     ll_lon, ll_lat, ur_lon, ur_lat = crs.area_of_use.bounds

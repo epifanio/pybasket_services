@@ -1,5 +1,14 @@
 from ipyleaflet import WMSLayer
-from ipywidgets import HTML, Dropdown, Layout, SelectionSlider, VBox, HBox, Checkbox, Button
+from ipywidgets import (
+    HTML,
+    Dropdown,
+    Layout,
+    SelectionSlider,
+    VBox,
+    HBox,
+    Checkbox,
+    Button,
+)
 from owslib.wms import WebMapService
 from projections import get_common_crs, get_projection
 from traitlets import Unicode
@@ -34,7 +43,12 @@ def get_wms_layers(wms):
 
 
 def get_wms_name(wms):
-    name = ET.fromstring(wms.getServiceXML().decode()).findall('.//*Layer')[0].findall('.//*Title')[0].text,
+    name = (
+        ET.fromstring(wms.getServiceXML().decode())
+        .findall(".//*Layer")[0]
+        .findall(".//*Title")[0]
+        .text,
+    )
 
 
 def get_ztwms(wms_url, crs, ipygis_key):
@@ -53,7 +67,10 @@ def get_ztwms(wms_url, crs, ipygis_key):
     crs = get_projection(crs)
     ztwms = ZTWMSLayer(
         # name=wms.contents[wms_layers[0]].title,
-        name=ET.fromstring(wms.getServiceXML().decode()).findall('.//*Layer')[0].findall('.//*Title')[0].text,
+        name=ET.fromstring(wms.getServiceXML().decode())
+        .findall(".//*Layer")[0]
+        .findall(".//*Title")[0]
+        .text,
         url=wms_url,
         layers=wms_layers[0],
         time=time,
@@ -73,18 +90,18 @@ class ztwms_control(object):
         self.wms_url = wms_url
         self.crs = crs
         self.ipygis_key = ipygis_key
-        self.ztwms, self.wms, self.wms_layers = get_ztwms(self.wms_url, self.crs, self.ipygis_key)
+        self.ztwms, self.wms, self.wms_layers = get_ztwms(
+            self.wms_url, self.crs, self.ipygis_key
+        )
         self.wms_control = self.get_wms_controls()
         self.fake = 0
         self.m = m
 
-
     def hide_opts(self, change):
-        if  self.wms_control.children[1].layout.display == 'block':
+        if self.wms_control.children[1].layout.display == "block":
             self.wms_control.children[1].layout.display = "none"
         else:
             self.wms_control.children[1].layout.display = "block"
-
 
     def get_wms_controls(self):
         # layer_header = HTML()
@@ -95,12 +112,13 @@ class ztwms_control(object):
             indent=False,
             # layout=Layout(max_width="380px", max_height="35px")
         )
-        hider = Button(description='X',
-                         layout=Layout(width='30px', height='30px'),
-                         )
-        header = HBox([layer_header, hider],
-                      layout=Layout(min_width="380px", min_height="45px")
-                      )
+        hider = Button(
+            description="X",
+            layout=Layout(width="30px", height="30px"),
+        )
+        header = HBox(
+            [layer_header, hider], layout=Layout(min_width="380px", min_height="45px")
+        )
         layer_header.observe(self.update_wms_visibility)
         # layer_footer = HTML()
         # layer_footer.value = '<br>'
@@ -112,7 +130,7 @@ class ztwms_control(object):
             # layout=Layout(max_width="380px", max_height="35px"),
         )
         layer_selector.observe(self.update_wms_layer, "value")
-        
+
         # WMS Opacity slider
         op_range = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         opacity_slider = SelectionSlider(
@@ -178,24 +196,29 @@ class ztwms_control(object):
             wms_legend = HTML(f"")
         styles_selector.observe(self.update_wms_styles, "value")
         styles_selector.observe(self.update_wms_legend, "value")
-        layer_opts = VBox([layer_selector,
+        layer_opts = VBox(
+            [
+                layer_selector,
                 opacity_slider,
                 styles_selector,
                 time_slider,
                 elevation_slider,
                 wms_legend,
-                ])
+            ]
+        )
         wms_control = VBox(
             [
-                #layer_header,
+                # layer_header,
                 header,
-                layer_opts
-            ],  layout=Layout(min_height="100px", display='block') #layout=Layout(width='auto', height='auto') # layout=Layout(border='solid 1px', min_height="200px", display='block')
+                layer_opts,
+            ],
+            layout=Layout(
+                min_height="100px", display="block"
+            ),  # layout=Layout(width='auto', height='auto') # layout=Layout(border='solid 1px', min_height="200px", display='block')
         )
         # hider.on_click(functools.partial(self.hide_opts, layer_opts))
         hider.on_click(self.hide_opts)
         return wms_control
-
 
     def update_wms_visibility(self, change):
         if self.ztwms.visible:
@@ -203,24 +226,19 @@ class ztwms_control(object):
         else:
             self.ztwms.visible = True
 
-
     def update_wms_opacity(self, change):
         self.ztwms.opacity = self.wms_control.children[1].children[1].value
 
-
     def update_wms_time(self, change):
         self.ztwms.time = "{}".format(self.wms_control.children[1].children[3].value)
-
 
     def update_wms_elevation(self, change):
         self.ztwms.elevation = "{}".format(
             float(self.wms_control.children[1].children[4].value.strip())
         )
 
-
     def update_wms_styles(self, change):
         self.ztwms.styles = self.wms_control.children[1].children[2].value
-
 
     def update_wms_legend(self, change):
         print(
@@ -230,22 +248,25 @@ class ztwms_control(object):
             self.wms.contents[self.ztwms.layers].styles[change.new]["legend"]
         )
 
-
     def update_wms_layer(self, change):
         # self.ztwms.name = ET.fromstring(self.wms.getServiceXML().decode()).findall('.//*Layer')[0].findall('.//*Title')[0].text
         # TIME
         print(self.wms_control)
-        if self.wms.contents[self.wms_control.children[1].children[0].value].timepositions:
+        if self.wms.contents[
+            self.wms_control.children[1].children[0].value
+        ].timepositions:
             print("has time")
             self.wms_control.children[1].children[3].layout.visibility = "visible"
             self.wms_control.children[1].children[3].options = self.wms.contents[
                 self.wms_control.children[1].children[0].value
             ].timepositions
-            self.wms_control.children[1].children[3].observe(self.update_wms_time, "value")
+            self.wms_control.children[1].children[3].observe(
+                self.update_wms_time, "value"
+            )
             self.wms_control.children[1].children[5].value = get_png_legend(
-                self.wms.contents[self.wms_control.children[1].children[0].value].styles[
-                    self.wms_control.children[1].children[2].value
-                ]["legend"]
+                self.wms.contents[
+                    self.wms_control.children[1].children[0].value
+                ].styles[self.wms_control.children[1].children[2].value]["legend"]
             )
         else:
             self.wms_control.children[1].children[3].layout.visibility = "hidden"
@@ -256,7 +277,9 @@ class ztwms_control(object):
             self.wms_control.children[1].children[4].options = self.wms.contents[
                 self.wms_control.children[1].children[0].value
             ].elevations
-            self.wms_control.children[1].children[4].observe(self.update_wms_elevation, "value")
+            self.wms_control.children[1].children[4].observe(
+                self.update_wms_elevation, "value"
+            )
         else:
             self.wms_control.children[1].children[4].layout.visibility = "hidden"
         # STYLES
@@ -264,10 +287,16 @@ class ztwms_control(object):
             print("has styles")
             self.wms_control.children[1].children[2].layout.visibility = "visible"
             self.wms_control.children[1].children[2].options = list(
-                self.wms.contents[self.wms_control.children[1].children[0].value].styles.keys()
+                self.wms.contents[
+                    self.wms_control.children[1].children[0].value
+                ].styles.keys()
             )
-            self.wms_control.children[1].children[2].observe(self.update_wms_styles, "value")
-            self.wms_control.children[1].children[2].observe(self.update_wms_legend, "value")
+            self.wms_control.children[1].children[2].observe(
+                self.update_wms_styles, "value"
+            )
+            self.wms_control.children[1].children[2].observe(
+                self.update_wms_legend, "value"
+            )
         else:
             self.wms_control.children[1].children[2].layout.visibility = "hidden"
         self.ztwms.layers = self.wms_control.children[1].children[0].value

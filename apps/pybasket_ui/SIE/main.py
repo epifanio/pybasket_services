@@ -97,6 +97,7 @@ def get_mplot(df, cols=None):
     )
     return mplot
 
+
 def get_data():
     nc_url = "http://hyrax.epinux.com/opendap/local_data/osisaf_nh_iceextent_daily.nc"
     ds = xr.open_dataset(nc_url)
@@ -114,8 +115,6 @@ def get_data():
     return all_years
 
 
-
-
 df = get_data()
 
 years = pn.widgets.MultiChoice(
@@ -130,5 +129,6 @@ def get_plot(years):
         df = transfer_metadata(df, years)
     mplot = get_mplot(df, years)
     return mplot
+
 
 pn.Column("Sea Ice Extent", get_plot, pn.Row(years), width_policy="max").servable()
