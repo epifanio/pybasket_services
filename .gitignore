@@ -2,6 +2,8 @@
 .idea/
 venv/
 apps/pybasket_ui/node_modules/
+apps/redis/data/
+apps/redis/data2/
 apps/redis/data/dump.rdb
 apps/redis/data/appendonly.aof
 *.pyc
