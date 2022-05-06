@@ -340,30 +340,30 @@ def custom_checkbox(json_data, nb_config_file):
     if parsed_yaml is not None:
         nb_label = Div(text="<b>Notebooks :</b>", css_classes=["custom_label"])
         nb_dict = {i["name"]: i for i in parsed_yaml["notebooks"]}
-        nb_info_layouts = {
-            nb_id: row(Div(text="host"), visible=False) for nb_id in nb_dict
-        }
+        # nb_info_layouts = {
+        #    nb_id: row(Div(text="host"), visible=False) for nb_id in nb_dict
+        # }
 
-        nb_info_btns = {
-            nb_id: meta_button(str(nb_dict[nb_id]), nb_info_layouts[nb_id], "metadata")
-            for nb_id in nb_dict
-        }
+        # nb_info_btns = {
+        #    nb_id: meta_button(str(nb_dict[nb_id]), nb_info_layouts[nb_id], "metadata")
+        #    for nb_id in nb_dict
+        # }
 
-        nb_checkboxes = column(
-            [
-                column(
-                    row(
-                        CheckboxGroup(
-                            labels=[nb_dict[nb_id]["name"]],
-                            css_classes=["bk-bs-checkbox"],
-                        ),
-                        nb_info_btns[nb_id],
-                    ),
-                    column([nb_info_layouts[nb_id]]),
-                )
-                for nb_id in nb_dict
-            ]
-        )
+        # nb_checkboxes = column(
+        #    [
+        #        column(
+        #            row(
+        #                CheckboxGroup(
+        #                    labels=[nb_dict[nb_id]["name"]],
+        #                    css_classes=["bk-bs-checkbox"],
+        #                ),
+        #                nb_info_btns[nb_id],
+        #            ),
+        #            column([nb_info_layouts[nb_id]]),
+        #        )
+        #        for nb_id in nb_dict
+        #    ]
+        # )
         #
         # nb_radio = row(column(RadioGroup(labels=[nb_id for nb_id in nb_dict], active=0, height_policy='max')), column([nb_info_btns[i] for i in nb_info_btns]))
 
@@ -388,12 +388,12 @@ def custom_checkbox(json_data, nb_config_file):
             ),
         )
         # nb_sel.on_change("selected", nb_info(nb_dict, nb_info_layout, content_type='metadata'))
-        nb_radio = row(column(nb_sel), nb_info_layout)
+        nb_selector = row(column(nb_sel), nb_info_layout)
 
         #
     else:
-        nb_checkboxes = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
-        nb_radio = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+        # nb_checkboxes = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+        nb_selector = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
 
     ##
     multi_select = column(
@@ -402,7 +402,7 @@ def custom_checkbox(json_data, nb_config_file):
         column(tsp_label, Spacer(width=20), tsp_checkboxes),
         column(na_label, Spacer(width=20), na_checkboxes),
         # column(nb_label, Spacer(width=20), nb_checkboxes),
-        column(nb_label, Spacer(width=20), nb_radio),
+        column(nb_label, Spacer(width=20), nb_selector),
         Spacer(height=20),
     )
 
