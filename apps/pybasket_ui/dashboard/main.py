@@ -14,19 +14,27 @@ curdoc_element = curdoc()
 
 args = curdoc_element.session_context.request.arguments
 
-#if not Path(os.environ['TSPLOT_DOWNLOAD']).exists():
+# if not Path(os.environ['TSPLOT_DOWNLOAD']).exists():
 #    Path(os.environ['TSPLOT_DOWNLOAD']).mkdir(parents=True, exist_ok=True)
 
-input_data = json.loads(args.get('data')[0].decode())
+input_data = json.loads(args.get("data")[0].decode())
 
+nb_config_file = "/pybasket_ui/config/ptep_config.yaml"
 
-checkboxes = custom_checkbox(input_data)
+checkboxes = custom_checkbox(input_data, nb_config_file=nb_config_file)
 doc = curdoc()
-export_layout = export_widget(doc, checkboxes, input_data)
+export_layout = export_widget(
+    doc, checkboxes, input_data, nb_config_file=nb_config_file
+)
 
-curdoc_element.add_root(column(column(checkboxes,
-                                      column(Spacer(width=10, height=10, sizing_mode='fixed'),
-                                             export_layout)),
-                               Spacer(height=10, sizing_mode='scale_width'),
-                               row(Spacer(height=10, sizing_mode='fixed')),
-                               sizing_mode='scale_width'))
+curdoc_element.add_root(
+    column(
+        column(
+            checkboxes,
+            column(Spacer(width=10, height=10, sizing_mode="fixed"), export_layout),
+        ),
+        Spacer(height=10, sizing_mode="scale_width"),
+        row(Spacer(height=10, sizing_mode="fixed")),
+        sizing_mode="scale_width",
+    )
+)
