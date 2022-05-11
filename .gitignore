@@ -13,3 +13,4 @@ apps/pybasket_api/download/*.zip
 .scratch/
 *.rdb
 apps/pybasket_api/download/*.yml
+apps/pybasket_api/download/*.yaml
