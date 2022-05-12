@@ -9,10 +9,10 @@ import pandas as pd
 from holoviews import opts
 import panel as pn
 
-# pn.extension()
+pn.extension()
 hv.extension("bokeh", "matplotlib")
-# pn.extension(loading_spinner='dots', loading_color='#00aa41')
-# pn.param.ParamMethod.loading_indicator = True
+pn.extension(loading_spinner='dots', loading_color='#00aa41')
+pn.param.ParamMethod.loading_indicator = True
 
 def split_list(a, n):
     k, m = divmod(len(a), n)
@@ -123,11 +123,14 @@ def get_data(url):
     return all_years
 
 
+urls = ['https://thredds.met.no/thredds/dodsC/osisaf/met.no/ice/index/v2p1/sh/osisaf_sh_sie_daily.nc', 
+        'https://thredds.met.no/thredds/dodsC/osisaf/met.no/ice/index/v2p1/nh/osisaf_nh_sie_daily.nc',
+        'https://hyrax.epinux.com/opendap/local_data/osisaf_nh_iceextent_daily.nc']
+
 
 urls_dict = {'South':'https://thredds.met.no/thredds/dodsC/osisaf/met.no/ice/index/v2p1/sh/osisaf_sh_sie_daily.nc', 
         'North':'https://thredds.met.no/thredds/dodsC/osisaf/met.no/ice/index/v2p1/nh/osisaf_nh_sie_daily.nc'}
-
-df = get_data(urls_dict[list(urls_dict.keys())[0]])
+df = get_data(urls[1])
 
 years = pn.widgets.MultiChoice(
     name="Years:", options=list(df.columns), margin=(0, 20, 0, 0)
@@ -155,5 +158,4 @@ def get_plot(years, radio_group):
     mplot = get_mplot(df, years)
     return mplot
 
-pn.Column("##Sea Ice Extent", "**Hemisphere:**", pn.bind(pn.Column(radio_group), get_plot, pn.Column(years)), width_policy="max").servable()
-# pn.panel(pn.Column("##Sea Ice Extent", "**Hemisphere:**", pn.Column(radio_group), get_plot, pn.Column(years), width_policy="max").servable(), loading_indicator=True)
+pn.panel(pn.Column("##Sea Ice Extent", "**Hemisphere:**", pn.Column(radio_group), get_plot, pn.Column(years), width_policy="max").servable(), loading_indicator=True)

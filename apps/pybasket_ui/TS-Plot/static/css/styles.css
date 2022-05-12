@@ -1,24 +1,24 @@
-.content{
+.content {
     background-color: #292737;
-    color: #FFFFFF;      
+    color: #FFFFFF;
     width: 40%;
     height: 140px;
 }
 
-.name{
-    font-size: 15pt;      
+.name {
+    font-size: 15pt;
 }
 
-.number{
-    font-size: 56pt;      
+.number {
+    font-size: 56pt;
 }
 
-.percentage{
+.percentage {
     font-size: 36pt;
 }
 
-.number-display{
-    width: 200px;       
+.number-display {
+    width: 200px;
 }
 
 
@@ -27,35 +27,35 @@
     font-family: “Centaur”;
     font-style: italic;
 }
-    
+
 .custom_tab .bk-bs-nav-tabs>li>span {
-    color:lightblue;
+    color: lightblue;
 }
-    
+
 .custom_tab .bk-bs-nav-tabs>li.bk-bs-active>span {
-    color:navy;
+    color: navy;
 }
-    
+
 .custom_select labels {
-    font-size:30pt;
-    font-weight:bold;
-    color:hotpink;
+    font-size: 30pt;
+    font-weight: bold;
+    color: hotpink;
 }
 
 .custom_select label {
-    font-size:30pt;
-    font-weight:bold;
-    color:darkslategray;
+    font-size: 30pt;
+    font-weight: bold;
+    color: darkslategray;
 }
 
 .custom_select select {
-    color:darkolivegreen;
-    font-weight:bold;
-    }
+    color: darkolivegreen;
+    font-weight: bold;
+}
 
 
-.widget_label label{
-    font-size:30pt;
-    font-weight:bold;
-    color:darkslategray;      
+.widget_label label {
+    font-size: 30pt;
+    font-weight: bold;
+    color: darkslategray;
 }

@@ -1,4 +1,4 @@
-import {AbstractIcon, AbstractIconView} from "models/widgets/abstract_icon"
+import { AbstractIcon, AbstractIconView } from "models/widgets/abstract_icon"
 import * as p from "core/properties"
 
 import "./fontawesome.less"
@@ -40,7 +40,7 @@ export namespace FontAwesomeIcon {
   }
 }
 
-export interface FontAwesomeIcon extends FontAwesomeIcon.Attrs {}
+export interface FontAwesomeIcon extends FontAwesomeIcon.Attrs { }
 
 export class FontAwesomeIcon extends AbstractIcon {
   properties: FontAwesomeIcon.Props
@@ -54,10 +54,10 @@ export class FontAwesomeIcon extends AbstractIcon {
     this.prototype.default_view = FontAwesomeIconView
 
     this.define<FontAwesomeIcon.Props>({
-      icon_name: [ p.String,  "check" ], // TODO (bev) enum?
-      size:      [ p.Number,  1       ],
-      flip:      [ p.Any              ], // TODO (bev)
-      spin:      [ p.Boolean, false   ],
+      icon_name: [p.String, "check"], // TODO (bev) enum?
+      size: [p.Number, 1],
+      flip: [p.Any], // TODO (bev)
+      spin: [p.Boolean, false],
     })
   }
 }

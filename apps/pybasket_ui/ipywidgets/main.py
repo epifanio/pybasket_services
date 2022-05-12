@@ -16,9 +16,12 @@ attribution = "Map data (c) <a href='https://www.openstreetmap.org/'>OpenStreetM
 tile_source = WMTSTileSource(url=url, attribution=attribution)
 
 plot = figure(
-    x_range=(1551600, 2212000), y_range=(6417000, 6872000),
-    x_axis_type=None, y_axis_type=None,
-    width=600, height=400,
+    x_range=(1551600, 2212000),
+    y_range=(6417000, 6872000),
+    x_axis_type=None,
+    y_axis_type=None,
+    width=600,
+    height=400,
 )
 plot.add_tile(tile_source)
 

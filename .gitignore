@@ -1,6 +1,9 @@
+.vscode/
 .idea/
 venv/
 apps/pybasket_ui/node_modules/
+apps/redis/data/
+apps/redis/data2/
 apps/redis/data/dump.rdb
 apps/redis/data/appendonly.aof
 *.pyc
@@ -8,3 +11,6 @@ apps/redis/data/*
 *__pycache__/
 apps/pybasket_api/download/*.zip
 .scratch/
+*.rdb
+apps/pybasket_api/download/*.yml
+apps/pybasket_api/download/*.yaml

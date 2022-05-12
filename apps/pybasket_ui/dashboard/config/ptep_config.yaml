@@ -1,0 +1,51 @@
+context: List of Jupyter Notebooks addressing the Use Cases of the ERA CVL project.
+resource: https://cvl.eo.esa.int/index.php/node/33
+notebooks:
+  - name: UseCase1
+    purpose: Operational validation of sea ice forecasts near Svalbard
+    resource: https://raw.githubusercontent.com/CryosphereVirtualLab/cvl_science_use_cases/master/UseCase1/notebooks/use_case_01_nextsim_result_validation_with_pyresample.ipynb
+    dependencies: 
+      - name: cartopy
+        resource: https://github.com/SciTools/cartopy
+        version:  v0.20.2
+      - name: matplotlib
+        resource: https://github.com/matplotlib/matplotlib
+        version: v3.5.2 
+      - name: netCDF4
+        version: v1.5.7
+        resource: https://github.com/Unidata/netcdf4-python
+      - name: pyresample
+        resource: https://github.com/pytroll/pyresample
+        version: v1.23.0
+  - name: UseCase2
+    purpose: Early detection of phytoplankton blooms near ice edge
+    resource: https://raw.githubusercontent.com/CryosphereVirtualLab/cvl_science_use_cases/master/UseCase2/notebooks/use_case_02.ipynb
+    dependencies:
+      - name: numpy
+        resource: https://github.com/numpy/numpy
+        version: v1.21.6
+      - name: cartopy
+        resource: https://github.com/SciTools/cartopy
+        version:  v0.20.2
+      - name: matplotlib
+        resource: https://github.com/matplotlib/matplotlib
+        version: v3.5.2 
+      - name: netCDF4
+        version: v1.5.7
+        resource: https://github.com/Unidata/netcdf4-python
+  - name: UseCase3
+    purpose: Arctic Amplifications on and around Svalbard
+    resource: https://raw.githubusercontent.com/CryosphereVirtualLab/cvl_science_use_cases/master/UseCase3/notebooks/REQ-3300-ArcticAmplification.ipynb
+    dependencies:
+      - name: numpy
+        resource: https://github.com/numpy/numpy
+        version: v1.21.6
+      - name: cartopy
+        resource: https://github.com/SciTools/cartopy
+        version:  v0.20.2
+      - name: matplotlib
+        resource: https://github.com/matplotlib/matplotlib
+        version: v3.5.2 
+      - name: shapely
+        version: v1.8.2
+        resource: https://github.com/shapely/shapely
