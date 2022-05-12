@@ -1,0 +1,134 @@
+{
+    "$defs": {
+        "uuid": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "url": {
+            "type": "string",
+            "pattern": "^https://"
+        }
+    },
+    "type": "object",
+    "properties": {
+        "Context": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "id": {
+                    "$ref": "#/$defs/uuid"
+                }
+            },
+            "required": [
+                "type",
+                "id"
+            ],
+            "additionalProperties": false
+        },
+        "Data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/$defs/uuid"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "resource": {
+                        "$ref": "#/$defs/url"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "HTTPS",
+                            "opendap",
+                            "OGC:WMS"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "resource",
+                    "type"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "Software": {
+            "$dynamicAnchor": "software",
+            "type": "object",
+            "properties": {
+                "resource": {
+                    "$ref": "#/$defs/url"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "Jupyter",
+                        "library"
+                    ]
+                },
+                "dependencies": {
+                    "type": "array",
+                    "items": {
+                        "$dynamicRef": "#software"
+                    },
+                    "minItems": 0,
+                    "uniqueItems": true
+                }
+            },
+            "required": [
+                "resource",
+                "type",
+                "dependencies"
+            ],
+            "additionalProperties": false
+        },
+        "Environment": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "type": "string",
+                    "enum": [
+                        "PTEP",
+                        "Sigma2",
+                        "EOSC",
+                        "MET"
+                    ]
+                },
+                "processor": {
+                    "type": "string",
+                    "enum": [
+                        "JupyterHub",
+                        "VM",
+                        "Docker",
+                        "Singularity"
+                    ]
+                }
+            },
+            "required": [
+                "provider",
+                "processor"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "Context",
+        "Data",
+        "Software",
+        "Environment"
+    ],
+    "additionalProperties": false
+}

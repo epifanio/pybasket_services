@@ -32,6 +32,7 @@ import json
 
 # from jsonschema import validate
 from starlette.templating import Jinja2Templates
+from jsonschema import ValidationError, validate
 
 templates = Jinja2Templates(directory="./templates")
 
@@ -45,17 +46,19 @@ celery_app = Celery("tasks", broker=rabbit_host)
 logger = get_task_logger(__name__)
 
 
-def validate_object(information_object):
-    with open("info_object_schema.json") as f:
+def validate_object(generated_yaml):
+    with open('info_object_schema.json') as f:
         information_object_schema = json.loads(f.read())
 
         # Load the information object.
-        # with open('info_object.yml') as f:
-        #    information_object = yaml.load(f, Loader=yaml.FullLoader)
+        with open(generated_yaml) as f:
+            information_object = yaml.load(f, Loader=yaml.FullLoader)
 
-        # Validate the information object.
-        validate(instance=information_object, schema=information_object_schema)
-    return True
+            # Validate the information object.
+            validate(instance=information_object, schema=information_object_schema)
+
+            print('If there are no exceptions then the info objected was validated!')
+            return True
 
 
 @celery_app.task
@@ -164,11 +167,43 @@ def generate_spec(data, notebooks, transaction_id):
         }
         for i in data["notebooks"]
     ]
+    print(data['notebooks'])
+    notebooks = [{'name': i, 
+            'resource': data['notebooks'][i]['resource'],
+             'dependencies': [{'name':j['name'],
+                               # library dependencies are hardcoded to an emty array 
+                               # can be extended if really needed
+                               'dependencies':[], 
+                               'resource': j['resource'],
+                               'version': j['version']} for j in data['notebooks'][i]['dependencies']]} for i in data['notebooks']]
+    
+    # context is hardocoded here
+    # need to generate a uuid
+    # dependencies for the dependencies are set to be empty
+    context = {'type':'VRE config', 
+           'id': str(uuid.uuid4())}
+    environment = {'provider':'PTEP', 
+               'processor':'JupyterHub'}
     templates = Jinja2Templates(directory="/app/templates")
-    ff = templates.get_template("config/obj_tmpl.yaml").render(
-        {"request": "request", "datasets": datasets, "notebooks": notebooks}
-    )
+    #ff = templates.get_template("config/obj_tmpl.yaml").render(
+    #    {"request": "request", "datasets": datasets, "notebooks": notebooks}
+    #)
+
+    ff = templates.get_template("config/ptep_obj_tmpl.yaml").render({"request": 'request', 
+                                                            "datasets": datasets, 
+                                                            "notebooks": notebooks,
+                                                            "context": context,
+                                                            "environment": environment})
+
+
     print(ff)
+    try:
+        with open('/app/config/info_object_schema.json') as f:
+            information_object_schema = json.loads(f.read())
+            validate(instance=ff, schema=information_object_schema)
+    except ValidationError:
+        print('generated yaml not valid')
+
     with open(outfile, "w+") as yaml_file:
         ##yaml.dump(data, yaml_file, allow_unicode=True)
         yaml_file.write(ff)

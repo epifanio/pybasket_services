@@ -14,3 +14,4 @@ xarray
 gunicorn
 redis
 redisearch
+jsonschema

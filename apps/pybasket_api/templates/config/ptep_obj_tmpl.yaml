@@ -19,10 +19,10 @@ Software:
       - name: {{dep.name}}
         resource: {{dep.resource}}
         version: {{dep.version}}
-        type: {{dep.type}}
-        dependencies: {{dep.dependencies}}
+        type: library
+        dependencies: {{dep.dependencies}}       
       {% endfor %}
     {% endfor %}
 Environment:
   provider: {{environment.provider}}
-  processor: {{environment.processsor}}
+  processor: {{environment.processor}}

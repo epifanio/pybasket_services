@@ -16,6 +16,7 @@ from ipywidgets import Box, VBox, Layout, Label
 from ipywidgets_bokeh import IPyWidget
 from ipywidgets import widgets
 
+
 from log_util import setup_log, get_logpath
 
 logger = setup_log("custom_checkbox", logtype="stream")
@@ -52,22 +53,27 @@ def get_selection(widget, json_data, nb_config):
     # print("SELECTED NOTEBOOK:", nb_selected)
     # nb_selected = []
     # print(ts_selected, p_selected, tsp_selected, na_selected, nb_selected)
-    nb_dict = {i["name"]: i for i in nb_config["notebooks"]}
-    # nb_selected_dict = {i: nb_dict[i] for i in nb_dict if i in nb_selected}
-    nb_selected_dict = {
-        widget.children[4]
-        .children[2]
-        .children[0]
-        .children[0]
-        .value: nb_dict[widget.children[4].children[2].children[0].children[0].value]
-    }
-    print(nb_selected_dict)
+    if json_data['notebook'] == True:
+        nb_dict = {i["name"]: i for i in nb_config["notebooks"]}
+        # nb_selected_dict = {i: nb_dict[i] for i in nb_dict if i in nb_selected}
+        nb_selected_dict = {
+            widget.children[4]
+            .children[2]
+            .children[0]
+            .children[0]
+            .value: nb_dict[widget.children[4].children[2].children[0].children[0].value]
+        }
+        print(nb_selected_dict)
+    else:
+        nb_selected_dict = {}
     data_selected_dict = {
         i: json_data["data"][i]
         for i in json_data["data"]
         if json_data["data"][i]["title"]
         in ts_selected + p_selected + tsp_selected + na_selected
     }
+
+    print(json_data)
     return {"data": data_selected_dict, "notebooks": nb_selected_dict}
 
 
@@ -185,13 +191,13 @@ def custom_checkbox(json_data, nb_config_file):
     ts_checkboxes = column(
         [
             column(
-                row(
+                column(
                     CheckboxGroup(
                         labels=[ts_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    ts_info_btns[data_id],
-                    ts_plot_btns[data_id],
+                    row([Spacer(width=20), ts_info_btns[data_id],
+                    ts_plot_btns[data_id]]),
                 ),
                 column([ts_info_layouts[data_id], ts_plot_layouts[data_id]]),
             )
@@ -222,13 +228,13 @@ def custom_checkbox(json_data, nb_config_file):
     p_checkboxes = column(
         [
             column(
-                row(
+                column(
                     CheckboxGroup(
                         labels=[p_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    p_info_btns[data_id],
-                    p_plot_btns[data_id],
+                    row([Spacer(width=20), p_info_btns[data_id],
+                    p_plot_btns[data_id]]),
                 ),
                 column([p_info_layouts[data_id], p_plot_layouts[data_id]]),
             )
@@ -261,13 +267,13 @@ def custom_checkbox(json_data, nb_config_file):
     tsp_checkboxes = column(
         [
             column(
-                row(
+                column(
                     CheckboxGroup(
                         labels=[tsp_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    tsp_info_btns[data_id],
-                    tsp_plot_btns[data_id],
+                    row([Spacer(width=20),tsp_info_btns[data_id],
+                    tsp_plot_btns[data_id]]),
                 ),
                 column([tsp_info_layouts[data_id], tsp_plot_layouts[data_id]]),
             )
@@ -300,13 +306,13 @@ def custom_checkbox(json_data, nb_config_file):
     na_checkboxes = column(
         [
             column(
-                row(
+                column(
                     CheckboxGroup(
                         labels=[na_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    na_info_btns[data_id],
-                    na_plot_btns[data_id],
+                    row([Spacer(width=20),na_info_btns[data_id],
+                    na_plot_btns[data_id]]),
                 ),
                 column([na_info_layouts[data_id], na_plot_layouts[data_id]]),
             )
@@ -335,65 +341,71 @@ def custom_checkbox(json_data, nb_config_file):
     else:
         na_label = Div(text="")
     # NOTEBOOKS - multi-selection
-    parsed_yaml = parse_notebook_config(nb_config_file)
-    print(parsed_yaml)
-    if parsed_yaml is not None:
-        nb_label = Div(text="<b>Notebooks :</b>", css_classes=["custom_label"])
-        nb_dict = {i["name"]: i for i in parsed_yaml["notebooks"]}
-        # nb_info_layouts = {
-        #    nb_id: row(Div(text="host"), visible=False) for nb_id in nb_dict
-        # }
+    if json_data['notebook'] == True:
+        parsed_yaml = parse_notebook_config(nb_config_file)
+        print(parsed_yaml)
+        if parsed_yaml is not None:
+            nb_label = Div(text="<b>Notebooks :</b>", css_classes=["custom_label"])
+            nb_dict = {i["name"]: i for i in parsed_yaml["notebooks"]}
+            # nb_info_layouts = {
+            #    nb_id: row(Div(text="host"), visible=False) for nb_id in nb_dict
+            # }
 
-        # nb_info_btns = {
-        #    nb_id: meta_button(str(nb_dict[nb_id]), nb_info_layouts[nb_id], "metadata")
-        #    for nb_id in nb_dict
-        # }
+            # nb_info_btns = {
+            #    nb_id: meta_button(str(nb_dict[nb_id]), nb_info_layouts[nb_id], "metadata")
+            #    for nb_id in nb_dict
+            # }
 
-        # nb_checkboxes = column(
-        #    [
-        #        column(
-        #            row(
-        #                CheckboxGroup(
-        #                    labels=[nb_dict[nb_id]["name"]],
-        #                    css_classes=["bk-bs-checkbox"],
-        #                ),
-        #                nb_info_btns[nb_id],
-        #            ),
-        #            column([nb_info_layouts[nb_id]]),
-        #        )
-        #        for nb_id in nb_dict
-        #    ]
-        # )
-        #
-        # nb_radio = row(column(RadioGroup(labels=[nb_id for nb_id in nb_dict], active=0, height_policy='max')), column([nb_info_btns[i] for i in nb_info_btns]))
+            # nb_checkboxes = column(
+            #    [
+            #        column(
+            #            row(
+            #                CheckboxGroup(
+            #                    labels=[nb_dict[nb_id]["name"]],
+            #                    css_classes=["bk-bs-checkbox"],
+            #                ),
+            #                nb_info_btns[nb_id],
+            #            ),
+            #            column([nb_info_layouts[nb_id]]),
+            #        )
+            #        for nb_id in nb_dict
+            #    ]
+            # )
+            #
+            # nb_radio = row(column(RadioGroup(labels=[nb_id for nb_id in nb_dict], active=0, height_policy='max')), column([nb_info_btns[i] for i in nb_info_btns]))
 
-        nb_sel = Select(
-            title="",
-            value=[nb_id for nb_id in nb_dict][0],
-            options=[nb_id for nb_id in nb_dict],
-            css_classes=["custom_select"],
-            width=100,
-        )
+            nb_sel = Select(
+                title="",
+                value=[nb_id for nb_id in nb_dict][0],
+                options=[nb_id for nb_id in nb_dict],
+                css_classes=["custom_select"],
+                width=100,
+            )
 
-        content = json2html.convert(
-            json=nb_dict[nb_sel.value],
-            escape=True,
-            table_attributes='id="info-table" class="table table-bordered table-hover"',
-        )
-        nb_info_layout = row(Div(text=content), visible=True)
-        nb_sel.on_change(
-            "value",
-            functools.partial(
-                nb_info, metadata_dict=nb_dict, host_layout=nb_info_layout
-            ),
-        )
-        # nb_sel.on_change("selected", nb_info(nb_dict, nb_info_layout, content_type='metadata'))
-        nb_selector = row(column(nb_sel), nb_info_layout)
+            content = json2html.convert(
+                json=nb_dict[nb_sel.value],
+                escape=True,
+                table_attributes='id="info-table" class="table table-bordered table-hover"',
+            )
+            nb_info_layout = row(Div(text=content), visible=True)
+            nb_sel.on_change(
+                "value",
+                functools.partial(
+                    nb_info, metadata_dict=nb_dict, host_layout=nb_info_layout
+                ),
+            )
+            # nb_sel.on_change("selected", nb_info(nb_dict, nb_info_layout, content_type='metadata'))
+            nb_selector = row(column(nb_sel), nb_info_layout)
 
-        #
+            #
+        else:
+            # nb_checkboxes = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+            nb_selector = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+            nb_label = Spacer(width=20)
     else:
         # nb_checkboxes = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
         nb_selector = column(Spacer(width=20), Spacer(width=20), Spacer(width=20))
+        nb_label = Spacer(width=20)
 
     ##
     multi_select = column(

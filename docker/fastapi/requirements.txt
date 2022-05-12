@@ -16,3 +16,4 @@ uvloop
 httptools
 redis
 redisearch
+jsonschema

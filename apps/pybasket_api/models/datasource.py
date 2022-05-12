@@ -75,4 +75,14 @@ class Datasource(BaseModel):
     )
     email: str = pydantic.Field(default="me@you.web", example="epiesasha@me.com")
     project: Optional[str] = pydantic.Field(default="METSIS", example="METSIS")
-    notebook: Optional[str] = pydantic.Field(default="False", example="False")
+    notebook: Optional[bool] = pydantic.Field(default=False, example=False)
+    notebooks: Optional[dict] = pydantic.Field(
+        default={"": ""},
+        example={
+            "UseCase2": {
+                "name": "UseCase",
+                "purpose": "cool science",
+                "resource": "https://raw.githubusercontent.com/UseCase.ipynb",
+            }
+        },
+    )
