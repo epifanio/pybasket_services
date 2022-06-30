@@ -14,3 +14,4 @@ apps/pybasket_api/download/*.zip
 *.rdb
 apps/pybasket_api/download/*.yml
 apps/pybasket_api/download/*.yaml
+apps/pybasket_ui/sea-ice-index-viz/
