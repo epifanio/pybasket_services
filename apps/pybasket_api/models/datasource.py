@@ -13,7 +13,7 @@ class Datasource(BaseModel):
                 "feature_type": "timeSeries",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/hyrax/local_data/osisaf_sh_icearea_seasonal.nc"
+                        "http://hyrax.epinux.com/opendap/osisaf_sh_icearea_seasonal.nc"
                     ]
                 },
             },
@@ -22,7 +22,7 @@ class Datasource(BaseModel):
                 "feature_type": "timeSeries",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/hyrax/local_data/osisaf_nh_iceextent_daily.nc"
+                        "http://hyrax.epinux.com/opendap//osisaf_nh_iceextent_daily.nc"
                     ]
                 },
             },
@@ -31,7 +31,7 @@ class Datasource(BaseModel):
                 "feature_type": "profile",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/hyrax/local_data/itp01_itp1grd2042.nc"
+                        "http://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"
                     ]
                 },
             },
@@ -40,7 +40,7 @@ class Datasource(BaseModel):
                 "feature_type": "NA",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/hyrax/local_data/itp01_itp1grd2042.nc"
+                        "http://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"
                     ]
                 },
             },
@@ -49,7 +49,7 @@ class Datasource(BaseModel):
                 "feature_type": "timeSeriesProfile",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/hyrax/local_data/ctdiaoos_gi2007_2009.nc"
+                        "http://hyrax.epinux.com/opendap/ctdiaoos_gi2007_2009.nc"
                     ]
                 },
             },
