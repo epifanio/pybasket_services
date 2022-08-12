@@ -3,7 +3,7 @@ version: '3.3'
 services:
   fastapi:
     # image: epinux/pybasket_api:latest
-    image: epinux/fastapi:latest
+    image: epinux/fastapi:dev
     build:
       context: ./docker/fastapi
     environment:
@@ -15,6 +15,9 @@ services:
         API_HOST: "metsis.metsis-api.met.no"
         UI_HOST: "bokeh.metsis-api.met.no"
         PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
+        WMS_ENDPOINT: "https://bokeh.metsis-api.met.no/GISPY"
+        FORWARDED_ALLOW_IPS: "*"
+        REDIS_HOST: "redis"
         FORWARDED_ALLOW_IPS: "*"
         REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
     volumes:
@@ -22,6 +25,11 @@ services:
     ports:
       - 8000:80
     hostname: fastapi
+    depends_on: 
+      - rabbit
+      - worker
+      - redis
+      - bokeh
     links:
       - bokeh
     networks:
@@ -57,7 +65,7 @@ services:
         - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
 
   rabbit:
-    image: rabbitmq:latest
+    image: epinux/rabbitmq:local
     ports:
       - 5672:5672
     hostname: rabbit
@@ -66,7 +74,7 @@ services:
   
   worker:
     # image: epinux/pybasket_api:latest
-    image: epinux/fastapi:latest
+    image: epinux/fastapi:dev
     environment: 
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
@@ -74,7 +82,8 @@ services:
       API_HOST: "metsis.metsis-api.met.no"
       UI_HOST: "bokeh.metsis-api.met.no"
       PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
-      WMS_ENDPOINT: "https://bokeh.epinux.com/GISPY"
+      WMS_ENDPOINT: "https://bokeh.metsis-api.met.no/GISPY"
+      REDIS_HOST: "redis"
       REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
       PYTHONUNBUFFERED: 1
     volumes:
@@ -82,12 +91,13 @@ services:
     entrypoint: celery --app=worker.celery_app worker -c 2 --loglevel=debug
     depends_on: 
       - rabbit
+      - redis
     hostname: worker
     networks:
       - net  
 
   flower:  
-    image: mher/flower:0.9.5
+    image: epinux/flower:local
     command: ["flower", "--broker=amqp://guest@rabbit//", "--port=8888"]  
     ports:  
       - 10000:8888 
@@ -100,7 +110,7 @@ services:
 
   bokeh:
     # image: epinux/pybasket_ui:latest
-    image: epinux/bokeh:ipyw
+    image: epinux/bokeh:dev
     build:
       context: ./docker/bokeh
     environment:
@@ -113,6 +123,7 @@ services:
       PLOT_ENDPOINT: "https://bokeh.metsis-api.met.no/TS-Plot"
       WMS_ENDPOINT: "https://bokeh.metsis-api.met.no/GISPY"
       TSPLOT_DOWNLOAD: "/TS-Plot/static/Download"
+      REDIS_HOST: "redis"
       REDIS_PASSWORD: 'FGX0Im8cROKpFpHPOP8FETmOpLPsiLwEnHHXprOgn2AR7r7cGp'
       PYTHONUNBUFFERED: 1
     volumes:
@@ -120,6 +131,7 @@ services:
       - ./apps/pybasket_ui/SIE:/SIE
       - ./apps/pybasket_ui/TS-Plot:/TS-Plot
       - ./apps/pybasket_ui/GISPY/gispy:/GISPY
+      - ./apps/pybasket_ui/sea-ice-index-viz/bokeh-app:/SeaIce
       - ./apps/pybasket_ui/entrypoint.sh:/entrypoint.sh
     ports:
       - 7000:7000
@@ -161,15 +173,15 @@ services:
         - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
         - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
 
-  redismod:
-    image: redislabs/redismod:latest
+  redis:
+    image: epinux/redis:local
     ports:
       - 6379:6379
     volumes:
       - ./apps/redis/data:/data
-      - ./apps/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./apps/redis/redis-base.conf:/usr/local/etc/redis/redis.conf
     command: '/usr/local/etc/redis/redis.conf --appendonly yes'
-    hostname: redismod
+    hostname: redis
     networks:
       - net 
 
