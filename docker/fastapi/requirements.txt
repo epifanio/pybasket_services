@@ -9,7 +9,7 @@ bokeh==2.3.3
 celery
 Jinja2
 itsdangerous
-netCDF4
+netcdf4==1.5.8
 xarray
 gunicorn
 uvloop
