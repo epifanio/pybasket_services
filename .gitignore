@@ -16,3 +16,5 @@ apps/pybasket_api/download/*.yml
 apps/pybasket_api/download/*.yaml
 apps/pybasket_ui/TS-Plot/static/Download/*.zip
 apps/pybasket_ui/sea-ice-index-viz/
+apps/pybasket_ui/CSW
+apps/pybasket_ui/react
