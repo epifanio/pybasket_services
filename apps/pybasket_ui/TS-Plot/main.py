@@ -4,6 +4,8 @@ import zipfile
 import re
 import uuid
 import base64
+import traceback
+import sys
 
 import numpy as np
 import pandas as pd
@@ -38,6 +40,10 @@ from fontawesome.fontawesome_icon import FontAwesomeIcon
 
 from nc_transform import get_plottable_variables, get_nc_data, get_tsp_data_dict
 
+from starlette.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="/TS-Plot/templates")
+
 curdoc_element = curdoc()
 args = curdoc_element.session_context.request.arguments
 
@@ -63,6 +69,10 @@ def get_data(resource_url):
     dataset_metadata = data.dataset_metadata
     variable_metadata = data.variable_metadata
     data = data[variables]
+    if isinstance(data.index, pd.MultiIndex):
+        data = data.reset_index(
+            level=[i for i in data.index.names if i != "time"], drop=True
+        )
     if axis == "y_axis":
         data.dataset_metadata = ""
         data.dataset_metadata = dataset_metadata
@@ -445,418 +455,448 @@ def get_labels(obj, variable):
 
 
 nc_url = str(args.get("url")[0].decode())
-data = get_data(nc_url)
 
-raw_data = Div(
-    text="""<br><br> <a href="{str(args.get('url')[0].decode())}">RAW data</a>"""
-)
-
-# Create  metadata table
-dataset_metadata_keys = list(data.dataset_metadata.keys())
-dataset_metadata_values = list(data.dataset_metadata.values())
-dataset_metadata = dict(
-    key=list(data.dataset_metadata.keys()),
-    value=list(data.dataset_metadata.values()),
-)
-dataset_metadata_source = ColumnDataSource(dataset_metadata)
-
-dataset_metadata_columns = [
-    TableColumn(field="key", title="key"),
-    TableColumn(field="value", title="value"),
-]
-metadata_table = DataTable(
-    source=dataset_metadata_source,
-    columns=dataset_metadata_columns,
-    css_classes=["custom_select"],
-)
-
-metadata_layout = row(
-    Spacer(width=30),
-    column(
-        Div(text='<font size = "2" color = "darkslategray" ><b>Metadata<b></font>'),
-        Spacer(height=10),
-        metadata_table,
-    ),
-)
-metadata_layout.visible = False
-
-metadata_button = Button(
-    icon=FontAwesomeIcon(icon_name="info", size=2), label="", height=50, width=50
-)  # , width_policy='fixed'
-metadata_button.on_click(show_hide_metadata)
-
-# TODO: should I copy the data and save them in memory for 'safe return to the future' scenario?
+error_log = Div(text=f"""<br><br> Can't load dataset from {nc_url} """)
 
 
-if data.feature_type == "TimeSeriesProfile":
-    preselected_variable = data[list(data.keys())[0]].columns[0]
-    df = data[list(data.keys())[0]]  # [preselected_variable].to_frame()
-    variables = list(df.columns)
-    df.dataset_metadata = ""
-    df.dataset_metadata = data.dataset_metadata
-    df.variable_metadata = ""
-    df.variable_metadata = data.variable_metadata
-    var_label, var_tooltip_label, x_axis_label = get_labels(df, preselected_variable)
-    tooltips = [("Index", "@" + df.index.name), (var_tooltip_label, var_label)]
-    x_axis_type = "linear"
-    y_axis_label = df.index.name
-    hover_formatter = "numeral"
-    y, x = df.index.name, variables[0]
-    y_range_flipped = True
-    handler = tsp_handler
-    # Div
-    html_text = get_datetime_string(list(data.keys())[0])
-    par = Div(text=html_text)
+def show_hide_error(event):
+    if error_log.visible:
+        error_log.visible = False
+    else:
+        error_log.visible = True
 
-    # Buttons
-    left_btn = Button(
-        icon=FontAwesomeIcon(icon_name="chevron-left", size=1),
-        height=40,
-        width=40,
-        label="",
+
+try:
+    data = get_data(nc_url)
+    # Create  metadata table
+    dataset_metadata_keys = list(data.dataset_metadata.keys())
+    dataset_metadata_values = list(data.dataset_metadata.values())
+    dataset_metadata = dict(
+        key=list(data.dataset_metadata.keys()),
+        value=list(data.dataset_metadata.values()),
     )
-    right_btn = Button(
-        icon=FontAwesomeIcon(icon_name="chevron-right", size=1),
-        height=40,
-        width=40,
-        label="",
-    )
-    # Spacer
-    sp = Spacer(width=50)
-    # Slider Labels
-    # end_label = Div(text=list(data.keys())[-1])
-    # start_label = Div(text=list(data.keys())[0])
-    # end_label = Div(text=list(data.keys())[-1].split(' ')[0] + \
-    #                     '<br>' \
-    #                     + list(data.keys())[-1].split(' ')[1],
-    #                style={'text-align': 'right'})
-    # start_label = Div(text=list(data.keys())[0].split(' ')[0] + \
-    #                       '<br>' \
-    #                       + list(data.keys())[0].split(' ')[1],
-    #                  style={'text-align': 'left'})
+    dataset_metadata_source = ColumnDataSource(dataset_metadata)
 
-    slider = Slider(
-        title="",
-        value=0,
-        start=0,
-        end=len(data.keys()) - 1,
-        step=1,
-        show_value=True,
-        tooltips=False,
-        bar_color="darkslategray",
+    dataset_metadata_columns = [
+        TableColumn(field="key", title="key"),
+        TableColumn(field="value", title="value"),
+    ]
+    metadata_table = DataTable(
+        source=dataset_metadata_source,
+        columns=dataset_metadata_columns,
+        css_classes=["custom_select"],
     )
-    slider.on_change("value", time_slider_handler)
-    widget_to_show = ""
 
-    left_btn.on_click(left_btn_handler)
-    right_btn.on_click(right_btn_handler)
-    slider_label = Div(
-        text='<font size = "2" color = "darkslategray" ><b>Profile #:<b></font>'
+    metadata_layout = row(
+        Spacer(width=30),
+        column(
+            Div(text='<font size = "2" color = "darkslategray" ><b>Metadata<b></font>'),
+            Spacer(height=10),
+            metadata_table,
+        ),
     )
-    slider_wrapper = layout(
-        [
+    metadata_layout.visible = False
+
+    metadata_button = Button(
+        icon=FontAwesomeIcon(icon_name="info", size=2), label="", height=50, width=50
+    )  # , width_policy='fixed'
+    metadata_button.on_click(show_hide_metadata)
+
+    # TODO: should I copy the data and save them in memory for 'safe return to the future' scenario?
+
+    if data.feature_type == "TimeSeriesProfile":
+        preselected_variable = data[list(data.keys())[0]].columns[0]
+        df = data[list(data.keys())[0]]  # [preselected_variable].to_frame()
+        variables = list(df.columns)
+        df.dataset_metadata = ""
+        df.dataset_metadata = data.dataset_metadata
+        df.variable_metadata = ""
+        df.variable_metadata = data.variable_metadata
+        var_label, var_tooltip_label, x_axis_label = get_labels(
+            df, preselected_variable
+        )
+        tooltips = [("Index", "@" + df.index.name), (var_tooltip_label, var_label)]
+        x_axis_type = "linear"
+        y_axis_label = df.index.name
+        hover_formatter = "numeral"
+        y, x = df.index.name, variables[0]
+        y_range_flipped = True
+        handler = tsp_handler
+        # Div
+        html_text = get_datetime_string(list(data.keys())[0])
+        par = Div(text=html_text)
+
+        # Buttons
+        left_btn = Button(
+            icon=FontAwesomeIcon(icon_name="chevron-left", size=1),
+            height=40,
+            width=40,
+            label="",
+        )
+        right_btn = Button(
+            icon=FontAwesomeIcon(icon_name="chevron-right", size=1),
+            height=40,
+            width=40,
+            label="",
+        )
+        # Spacer
+        sp = Spacer(width=50)
+        # Slider Labels
+        # end_label = Div(text=list(data.keys())[-1])
+        # start_label = Div(text=list(data.keys())[0])
+        # end_label = Div(text=list(data.keys())[-1].split(' ')[0] + \
+        #                     '<br>' \
+        #                     + list(data.keys())[-1].split(' ')[1],
+        #                style={'text-align': 'right'})
+        # start_label = Div(text=list(data.keys())[0].split(' ')[0] + \
+        #                       '<br>' \
+        #                       + list(data.keys())[0].split(' ')[1],
+        #                  style={'text-align': 'left'})
+
+        slider = Slider(
+            title="",
+            value=0,
+            start=0,
+            end=len(data.keys()) - 1,
+            step=1,
+            show_value=True,
+            tooltips=False,
+            bar_color="darkslategray",
+        )
+        slider.on_change("value", time_slider_handler)
+        widget_to_show = ""
+
+        left_btn.on_click(left_btn_handler)
+        right_btn.on_click(right_btn_handler)
+        slider_label = Div(
+            text='<font size = "2" color = "darkslategray" ><b>Profile #:<b></font>'
+        )
+        slider_wrapper = layout(
             [
-                Spacer(width=100),
-                column(slider_label, slider),
-                column(Spacer(width=10, height=20), row(left_btn, right_btn, par)),
-            ],
-        ]
-    )
-
-if data.feature_type == "TimeSeries":
-    df = data
-    variables = list(data.columns)
-    df["tooltip"] = [x.strftime("%Y-%m-%d %H:%M:%S") for x in df.index]
-    var_label, var_tooltip_label, y_axis_label = get_labels(df, variables[0])
-    tooltips = [("Time", "@tooltip"), (var_tooltip_label, var_label)]
-    x_axis_type = "datetime"
-    x_axis_label = "Date-Time"
-    hover_formatter = "datetime"
-    x, y = df.index.name, variables[0]
-    y_range_flipped = False
-    handler = ts_handler
-
-if data.feature_type == "Profile":
-    df = data
-    variables = list(data.columns)
-    var_label, var_tooltip_label, x_axis_label = get_labels(df, variables[0])
-    tooltips = [("Index", "@" + df.index.name), (var_tooltip_label, var_label)]
-    x_axis_type = "linear"
-    y_axis_label = df.index.name
-    hover_formatter = "numeral"
-    y, x = df.index.name, variables[0]
-    y_range_flipped = True
-    handler = p_handler
-
-tools_to_show = "box_zoom, pan, save, hover, reset, wheel_zoom, crosshair"
-ds = ColumnDataSource(df)
-
-p = figure(
-    toolbar_location="above",
-    tools=tools_to_show,
-    x_axis_type=x_axis_type,
-    x_axis_label=x_axis_label,
-    y_axis_label=y_axis_label,
-)  # output_backend="webgl"
-
-p.toolbar.logo = None
-p.sizing_mode = "stretch_width"
-
-hover = p.select(dict(type=HoverTool))
-hover.formatters = {"tooltip": hover_formatter}
-hover.tooltips = tooltips
-
-line_renderer = p.line(
-    x=x,
-    y=y,
-    source=ds,
-)
-
-circle_renderer = p.circle(
-    x=x,
-    y=y,
-    source=ds,
-    size=3,
-    fill_alpha=0.5,
-    fill_color="white",
-    legend_label="Data-Points",
-)
-circle_renderer.visible = False
-
-p.y_range.flipped = y_range_flipped
-p.min_border_left = 80
-p.min_border_right = 80
-# p.background_fill_color = "SeaShell"
-# p.background_fill_alpha = 0.5
-p.legend.location = "top_left"
-p.legend.click_policy = "hide"
-# TODO: Add widget to increase/decrease the font size
-p.xaxis.major_label_text_font_size = "10pt"
-p.yaxis.major_label_text_font_size = "10pt"
-p.yaxis.axis_label_text_font_size = "16pt"
-p.xaxis.axis_label_text_font_size = "16pt"
-p.xaxis.major_label_orientation = np.pi / 4
-
-select = Select(
-    title="Select variable:",
-    value=variables[0],
-    options=variables,
-    css_classes=["custom_select"],
-)
-select.on_change("value", handler)
-
-resampling = Select(
-    title="Frequency:",
-    value="--",
-    options=["--", "H", "D", "W", "M", "Q", "Y"],
-    css_classes=["custom_select"],
-)
-resampling.on_change("value", resampler)
-
-download = Button(
-    icon=FontAwesomeIcon(icon_name="download", size=2), height=50, width=50, label=""
-)  # , width_policy='fixed'
-download.on_click(show_hide_export)
-download_url = Div(text=""" """)
-
-
-accessibility = Button(
-    icon=FontAwesomeIcon(icon_name="low-vision", size=2), height=50, width=50, label=""
-)
-accessibility.on_click(show_hide_accessibility)
-
-
-theme_select = Select(
-    title="Theme",
-    options=["dark_minimal", "light_minimal", "night_sky", "contrast"],
-    value="light_minimal",
-    css_classes=["custom_select"],
-    width=120,
-    width_policy="fixed",
-)
-theme_select.on_change("value", switch_theme)
-
-increase_fontsize = Button(
-    icon=FontAwesomeIcon(icon_name="plus", size=1), height=30, width=30, label=""
-)
-decrease_fontsize = Button(
-    icon=FontAwesomeIcon(icon_name="minus", size=1), height=30, width=30, label=""
-)
-increase_fontsize.on_click(increase_font)
-decrease_fontsize.on_click(decrease_font)
-
-fontsize_label = Div(
-    text='<font size = "2" color = "darkslategray" ><b>Fontsize<b></font>'
-)
-fontsize_adjustments = column(
-    fontsize_label,
-    Spacer(width=10, height=10),
-    row(decrease_fontsize, Spacer(width=5, height=10), increase_fontsize),
-)
-accessibility_layout = row(
-    Spacer(width=30),
-    column(theme_select, Spacer(width=10, height=10), fontsize_adjustments),
-)
-accessibility_layout.visible = False
-
-
-# create the export widget-box
-# format:
-export_format = Select(
-    title="Select output data format:",
-    value="csv",
-    options=["csv", "NetCDF"],
-    css_classes=["custom_select"],
-    width=100,
-)
-
-export_variables = CheckboxGroup(labels=variables, css_classes=["custom_select"])
-
-export_button = Button(
-    icon=FontAwesomeIcon(icon_name="download", size=2), height=40, width=30, label=""
-)
-export_button.on_click(data_download)
-
-export_resampling = RadioGroup(labels=["Raw", "Resampled"], active=0)
-export_resampling_layout = column(
-    Div(text='<font size = "2" color = "darkslategray" ><b>Frequency:<b></font>'),
-    export_resampling,
-    Spacer(height=10),
-)
-
-export_layout = row(
-    Spacer(width=30),
-    column(
-        Div(text='<font size = "3" color = "darkslategray" ><b>Data Export:<b></font>'),
-        Spacer(height=10),
-        Div(
-            text='<font size = "2" color = "darkslategray" ><b>Select Variables to export:<b></font>'
-        ),
-        export_variables,
-        Spacer(height=10),
-        export_format,
-        Spacer(height=10),
-        export_resampling_layout,
-        Div(
-            text='<font size = "2" color = "darkslategray" ><b>Generate Download link:<b></font>'
-        ),
-        Spacer(height=10),
-        export_button,
-        Spacer(height=10),
-        download_url,
-    ),
-    sizing_mode="fixed",
-)
-
-export_layout.visible = False
-curdoc_element.title = "TS-Plot"
-
-# tab1 = Panel(child=p, title="Plot")
-# tab2 = Panel(child=metadata_table, title="Metadata")
-# tabs = Tabs(tabs=[tab1, tab2])
-
-'''
-
-show_hide_export_js = CustomJS(args=dict(export_layout=export_layout), code="""
-if (export_layout.visible) {
-    export_layout.visible=false;
-} else {
-    export_layout.visible=true;
-}
-""")
-
-show_hide_accessibility_js = CustomJS(args=dict(accessibility_layout=accessibility_layout), code="""
-if (accessibility_layout.visible) {
-    accessibility_layout.visible=false;
-} else {
-    accessibility_layout.visible=true;
-}
-""")
-
-show_hide_metadata_js = CustomJS(args=dict(metadata_layout=metadata_layout), code="""
-if (metadata_layout.visible) {
-    metadata_layout.visible=false;
-} else {
-    metadata_layout.visible=true;
-}
-""")
-
-show_hide_metadata = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
-                                                    'static', 
-                                                    'icons', 
-                                                    'db.jpg'), 
-                                callback=show_hide_metadata_js,
-                                action_tooltip='Show/Hide Metadata Table')
-p.add_tools(show_hide_metadata)
-
-show_hide_export = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
-                                                    'static', 
-                                                    'icons', 
-                                                    'db.jpg'), 
-                                callback=show_hide_export_js,
-                                action_tooltip='Show/Hide Data Export tools')
-p.add_tools(show_hide_export)
-
-show_hide_accessibility = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
-                                                    'static', 
-                                                    'icons', 
-                                                    'db.jpg'), 
-                                callback=show_hide_accessibility_js,
-                                action_tooltip='Show/Hide Accessibility Options')
-p.add_tools(show_hide_accessibility)
-'''
-
-fake_div = Div(text="", width=100)
-
-fake_div.visible = False
-
-if data.feature_type == "TimeSeriesProfile":
-    export_resampling_layout.visible = False
-    curdoc_element.add_root(
-        column(
-            row(
-                select,
-                slider_wrapper,
-                Spacer(width=60, height=10, sizing_mode="scale_width"),
-                row(download, metadata_button, accessibility),
-            ),
-            Spacer(height=10, sizing_mode="scale_width"),
-            row(
-                p,
-                column(
-                    fake_div,
-                    accessibility_layout,
-                    Spacer(width=10, height=10, sizing_mode="fixed"),
-                    metadata_layout,
-                    export_layout,
-                ),
-            ),
-            sizing_mode="scale_width",
+                [
+                    Spacer(width=100),
+                    column(slider_label, slider),
+                    column(Spacer(width=10, height=20), row(left_btn, right_btn, par)),
+                ],
+            ]
         )
-    )
-else:
+
+    if data.feature_type == "TimeSeries":
+        df = data
+        variables = list(df.columns)
+        df["tooltip"] = [x.strftime("%Y-%m-%d %H:%M:%S") for x in df.index]
+        var_label, var_tooltip_label, y_axis_label = get_labels(df, variables[0])
+        tooltips = [("Time", "@tooltip"), (var_tooltip_label, var_label)]
+        x_axis_type = "datetime"
+        x_axis_label = "Date-Time"
+        hover_formatter = "datetime"
+        x, y = df.index.name, variables[0]
+        y_range_flipped = False
+        handler = ts_handler
+
     if data.feature_type == "Profile":
-        resampling.visible = False
-        export_resampling_layout.visible = False
-    curdoc_element.add_root(
-        column(
-            row(
-                select,
-                resampling,
-                Spacer(width=80, height=10, sizing_mode="scale_width"),
-                row(download, metadata_button, accessibility),
-            ),
-            Spacer(height=10, sizing_mode="scale_width"),
-            row(
-                p,
-                column(
-                    fake_div,
-                    accessibility_layout,
-                    Spacer(width=10, height=10, sizing_mode="fixed"),
-                    metadata_layout,
-                    export_layout,
-                ),
-            ),
-            sizing_mode="scale_width",
-        )
+        df = data
+        variables = list(data.columns)
+        var_label, var_tooltip_label, x_axis_label = get_labels(df, variables[0])
+        tooltips = [("Index", "@" + df.index.name), (var_tooltip_label, var_label)]
+        x_axis_type = "linear"
+        y_axis_label = df.index.name
+        hover_formatter = "numeral"
+        y, x = df.index.name, variables[0]
+        y_range_flipped = True
+        handler = p_handler
+
+    tools_to_show = "box_zoom, pan, save, hover, reset, wheel_zoom, crosshair"
+    ds = ColumnDataSource(df)
+
+    p = figure(
+        toolbar_location="above",
+        tools=tools_to_show,
+        x_axis_type=x_axis_type,
+        x_axis_label=x_axis_label,
+        y_axis_label=y_axis_label,
+    )  # output_backend="webgl"
+
+    p.toolbar.logo = None
+    p.sizing_mode = "stretch_width"
+
+    hover = p.select(dict(type=HoverTool))
+    hover.formatters = {"tooltip": hover_formatter}
+    hover.tooltips = tooltips
+
+    line_renderer = p.line(
+        x=x,
+        y=y,
+        source=ds,
     )
+
+    circle_renderer = p.circle(
+        x=x,
+        y=y,
+        source=ds,
+        size=3,
+        fill_alpha=0.5,
+        fill_color="white",
+        legend_label="Data-Points",
+    )
+    circle_renderer.visible = False
+
+    p.y_range.flipped = y_range_flipped
+    p.min_border_left = 80
+    p.min_border_right = 80
+    # p.background_fill_color = "SeaShell"
+    # p.background_fill_alpha = 0.5
+    p.legend.location = "top_left"
+    p.legend.click_policy = "hide"
+    # TODO: Add widget to increase/decrease the font size
+    p.xaxis.major_label_text_font_size = "10pt"
+    p.yaxis.major_label_text_font_size = "10pt"
+    p.yaxis.axis_label_text_font_size = "16pt"
+    p.xaxis.axis_label_text_font_size = "16pt"
+    p.xaxis.major_label_orientation = np.pi / 4
+
+    select = Select(
+        title="Select variable:",
+        value=variables[0],
+        options=variables,
+        css_classes=["custom_select"],
+    )
+    select.on_change("value", handler)
+
+    resampling = Select(
+        title="Frequency:",
+        value="--",
+        options=["--", "H", "D", "W", "M", "Q", "Y"],
+        css_classes=["custom_select"],
+    )
+    resampling.on_change("value", resampler)
+
+    download = Button(
+        icon=FontAwesomeIcon(icon_name="download", size=2),
+        height=50,
+        width=50,
+        label="",
+    )  # , width_policy='fixed'
+    download.on_click(show_hide_export)
+    download_url = Div(text=""" """)
+
+    accessibility = Button(
+        icon=FontAwesomeIcon(icon_name="low-vision", size=2),
+        height=50,
+        width=50,
+        label="",
+    )
+    accessibility.on_click(show_hide_accessibility)
+
+    theme_select = Select(
+        title="Theme",
+        options=["dark_minimal", "light_minimal", "night_sky", "contrast"],
+        value="light_minimal",
+        css_classes=["custom_select"],
+        width=120,
+        width_policy="fixed",
+    )
+    theme_select.on_change("value", switch_theme)
+
+    increase_fontsize = Button(
+        icon=FontAwesomeIcon(icon_name="plus", size=1), height=30, width=30, label=""
+    )
+    decrease_fontsize = Button(
+        icon=FontAwesomeIcon(icon_name="minus", size=1), height=30, width=30, label=""
+    )
+    increase_fontsize.on_click(increase_font)
+    decrease_fontsize.on_click(decrease_font)
+
+    fontsize_label = Div(
+        text='<font size = "2" color = "darkslategray" ><b>Fontsize<b></font>'
+    )
+    fontsize_adjustments = column(
+        fontsize_label,
+        Spacer(width=10, height=10),
+        row(decrease_fontsize, Spacer(width=5, height=10), increase_fontsize),
+    )
+    accessibility_layout = row(
+        Spacer(width=30),
+        column(theme_select, Spacer(width=10, height=10), fontsize_adjustments),
+    )
+    accessibility_layout.visible = False
+
+    # create the export widget-box
+    # format:
+    export_format = Select(
+        title="Select output data format:",
+        value="csv",
+        options=["csv", "NetCDF"],
+        css_classes=["custom_select"],
+        width=100,
+    )
+
+    export_variables = CheckboxGroup(labels=variables, css_classes=["custom_select"])
+
+    export_button = Button(
+        icon=FontAwesomeIcon(icon_name="download", size=2),
+        height=40,
+        width=30,
+        label="",
+    )
+    export_button.on_click(data_download)
+
+    export_resampling = RadioGroup(labels=["Raw", "Resampled"], active=0)
+    export_resampling_layout = column(
+        Div(text='<font size = "2" color = "darkslategray" ><b>Frequency:<b></font>'),
+        export_resampling,
+        Spacer(height=10),
+    )
+
+    export_layout = row(
+        Spacer(width=30),
+        column(
+            Div(
+                text='<font size = "3" color = "darkslategray" ><b>Data Export:<b></font>'
+            ),
+            Spacer(height=10),
+            Div(
+                text='<font size = "2" color = "darkslategray" ><b>Select Variables to export:<b></font>'
+            ),
+            export_variables,
+            Spacer(height=10),
+            export_format,
+            Spacer(height=10),
+            export_resampling_layout,
+            Div(
+                text='<font size = "2" color = "darkslategray" ><b>Generate Download link:<b></font>'
+            ),
+            Spacer(height=10),
+            export_button,
+            Spacer(height=10),
+            download_url,
+        ),
+        sizing_mode="fixed",
+    )
+
+    export_layout.visible = False
+    curdoc_element.title = "TS-Plot"
+
+    # tab1 = Panel(child=p, title="Plot")
+    # tab2 = Panel(child=metadata_table, title="Metadata")
+    # tabs = Tabs(tabs=[tab1, tab2])
+
+    '''
+
+    show_hide_export_js = CustomJS(args=dict(export_layout=export_layout), code="""
+    if (export_layout.visible) {
+        export_layout.visible=false;
+    } else {
+        export_layout.visible=true;
+    }
+    """)
+
+    show_hide_accessibility_js = CustomJS(args=dict(accessibility_layout=accessibility_layout), code="""
+    if (accessibility_layout.visible) {
+        accessibility_layout.visible=false;
+    } else {
+        accessibility_layout.visible=true;
+    }
+    """)
+
+    show_hide_metadata_js = CustomJS(args=dict(metadata_layout=metadata_layout), code="""
+    if (metadata_layout.visible) {
+        metadata_layout.visible=false;
+    } else {
+        metadata_layout.visible=true;
+    }
+    """)
+
+    show_hide_metadata = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
+                                                        'static', 
+                                                        'icons', 
+                                                        'db.jpg'), 
+                                    callback=show_hide_metadata_js,
+                                    action_tooltip='Show/Hide Metadata Table')
+    p.add_tools(show_hide_metadata)
+
+    show_hide_export = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
+                                                        'static', 
+                                                        'icons', 
+                                                        'db.jpg'), 
+                                    callback=show_hide_export_js,
+                                    action_tooltip='Show/Hide Data Export tools')
+    p.add_tools(show_hide_export)
+
+    show_hide_accessibility = CustomAction(icon=os.path.join(os.path.dirname(__file__), 
+                                                        'static', 
+                                                        'icons', 
+                                                        'db.jpg'), 
+                                    callback=show_hide_accessibility_js,
+                                    action_tooltip='Show/Hide Accessibility Options')
+    p.add_tools(show_hide_accessibility)
+    '''
+
+    fake_div = Div(text="", width=100)
+
+    fake_div.visible = False
+
+    if data.feature_type == "TimeSeriesProfile":
+        export_resampling_layout.visible = False
+        curdoc_element.add_root(
+            column(
+                row(
+                    select,
+                    slider_wrapper,
+                    Spacer(width=60, height=10, sizing_mode="scale_width"),
+                    row(download, metadata_button, accessibility),
+                ),
+                Spacer(height=10, sizing_mode="scale_width"),
+                row(
+                    p,
+                    column(
+                        fake_div,
+                        accessibility_layout,
+                        Spacer(width=10, height=10, sizing_mode="fixed"),
+                        metadata_layout,
+                        export_layout,
+                    ),
+                ),
+                sizing_mode="scale_width",
+            )
+        )
+    else:
+        if data.feature_type == "Profile":
+            resampling.visible = False
+            export_resampling_layout.visible = False
+        curdoc_element.add_root(
+            column(
+                row(
+                    select,
+                    resampling,
+                    Spacer(width=80, height=10, sizing_mode="scale_width"),
+                    row(download, metadata_button, accessibility),
+                ),
+                Spacer(height=10, sizing_mode="scale_width"),
+                row(
+                    p,
+                    column(
+                        fake_div,
+                        accessibility_layout,
+                        Spacer(width=10, height=10, sizing_mode="fixed"),
+                        metadata_layout,
+                        export_layout,
+                    ),
+                ),
+                sizing_mode="scale_width",
+            )
+        )
+except KeyError:
+    raw_data = Div(text=f"""<br><br> Can't load dataset from {nc_url} """)
+    newhtml = templates.get_template("error.html").render(
+        {"error_traceback": traceback.format_exc()}
+    )
+    error_log.text = newhtml
+    error_log.visible = False
+    error_log_button = Button(
+        icon=FontAwesomeIcon(icon_name="info", size=2), label="", height=50, width=50
+    )  # , width_policy='fixed'
+    error_log_button.on_click(show_hide_error)
+
+    print(newhtml)
+    curdoc_element.add_root(column(raw_data, error_log_button, error_log))
