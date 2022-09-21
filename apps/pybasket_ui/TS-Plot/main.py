@@ -69,6 +69,7 @@ def get_data(resource_url):
     dataset_metadata = data.dataset_metadata
     variable_metadata = data.variable_metadata
     data = data[variables]
+
     if isinstance(data.index, pd.MultiIndex):
         data = data.reset_index(
             level=[i for i in data.index.names if i != "time"], drop=True

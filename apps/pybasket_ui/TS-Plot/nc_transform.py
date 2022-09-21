@@ -72,11 +72,18 @@ def get_plottable_variables(nc_url):
                 if len(ds[i].shape) == num_coords
                 if list(ds[i].dims) == valid_dims
             ]
+        if len(var_list) <= 0:
+            var_list = [
+                i
+                for i in ds
+                if any(elem in list(ds[i].coords.keys()) for elem in valid_dims)
+            ]
         if (
             all(len(ds[i].coords) == len(valid_coords) for i in var_list)
             and num_dims >= 2
             and num_coords >= 2
             or len(valid_dims) != num_dims
+            and len(valid_dims) >= 2  # this can break things
         ):
             axis_name = "x_axis"
             # if len(ds.dims) == len(ds.coords):
@@ -85,7 +92,7 @@ def get_plottable_variables(nc_url):
             #    axis_name = 'y_axis'
         else:
             axis_name = "y_axis"
-        print(var_list)
+        print("axis_name: \n", axis_name, "var_list: \n", var_list)
     except:
         var_list = []
         axis_name = "y_axis"
