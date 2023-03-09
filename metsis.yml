@@ -3,7 +3,7 @@ version: '3.3'
 services:
   fastapi:
     # image: epinux/pybasket_api:latest
-    image: epinux/fastapi:dev
+    image: epinux/fastapi:latest
     build:
       context: ./docker/fastapi
     environment:
@@ -74,7 +74,7 @@ services:
   
   worker:
     # image: epinux/pybasket_api:latest
-    image: epinux/fastapi:dev
+    image: epinux/fastapi:latest
     environment: 
       DOWNLOAD_DIR: "/app/download"
       PYTHONPATH: "/app"
@@ -110,7 +110,7 @@ services:
 
   bokeh:
     # image: epinux/pybasket_ui:latest
-    image: epinux/bokeh:dev
+    image: epinux/bokeh:latest
     build:
       context: ./docker/bokeh
     environment:
