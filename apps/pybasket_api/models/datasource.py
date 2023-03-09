@@ -72,6 +72,7 @@ class Datasource(BaseModel):
     email: str = pydantic.Field(default="me@you.web", example="epiesasha@me.com")
     project: Optional[str] = pydantic.Field(default="METSIS", example="METSIS")
     notebook: Optional[bool] = pydantic.Field(default=False, example=True)
+    notebook: Optional[bool] = pydantic.Field(default=False, example=True)
     notebooks: Optional[dict] = pydantic.Field(
         default={"": ""},
         example={
