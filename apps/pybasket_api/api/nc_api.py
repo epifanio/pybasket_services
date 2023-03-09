@@ -2,7 +2,7 @@ import fastapi
 from models.datasource import Datasource
 from fastapi.responses import HTMLResponse
 from services import bokeh_service
-from worker import fake_compress, generate_spec, generate_spec2
+from worker import fake_compress, generate_spec, generate_spec2, fake_compress2
 import re
 import uuid
 import base64
@@ -46,6 +46,26 @@ async def enqueue_compress(dl: Datasource):
         password=os.environ["REDIS_PASSWORD"],
     )
     fake_compress.delay(dl.data, dl.email, transaction_id)
+    return {"transaction_id": transaction_id}
+
+
+@router.post("/api/compress_spec")
+async def enqueue_compress2(dl: Datasource):
+    # We use celery delay method in order to enqueue the task with the given parameters
+    rv = base64.b64encode(uuid.uuid4().bytes).decode("utf-8")
+    transaction_id = re.sub(
+        r"[\=\+\/]", lambda m: {"+": "-", "/": "_", "=": ""}[m.group(0)], rv
+    )
+    print("#################################   ", transaction_id, dl.data)
+    # TODO: set NOW the status of the transaction to 'in-progress' by adding a new data key 'status'
+    status = {"status": False}
+    set_data(
+        transaction_id=transaction_id,
+        data=status,
+        redishost=os.environ["REDIS_HOST"],
+        password=os.environ["REDIS_PASSWORD"],
+    )
+    fake_compress2.delay(dl.data, dl.notebooks, transaction_id)
     return {"transaction_id": transaction_id}
 
 

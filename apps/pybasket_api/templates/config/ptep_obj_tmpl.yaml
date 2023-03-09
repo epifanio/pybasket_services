@@ -13,6 +13,7 @@ Data:
 Software:
     {% for nb in notebooks %}
     resource: {{nb.resource}}
+    virtual_environment_type: {{nb.virtual_environment_type}}
     type: Jupyter
     dependencies:            
       {% for dep in nb.dependencies %}

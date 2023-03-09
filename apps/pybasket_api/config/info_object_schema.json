@@ -46,7 +46,8 @@
                         "enum": [
                             "HTTPS",
                             "opendap",
-                            "OGC:WMS"
+                            "OGC:WMS",
+                            "NA"
                         ]
                     }
                 },

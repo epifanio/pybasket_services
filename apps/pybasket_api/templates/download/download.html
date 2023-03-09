@@ -2,21 +2,21 @@
 
 {% block content %}
 
-    <br>
+<br>
 
-    <h1>
-        <a href={{ url_for('download', path='/') }}{{ id }}><b>Download</b></a>
-    </h1>
-    <br>
-    <br>
-    <p class="p1">URL will expire in: </p>
-    <p id="time_left"></p>
+<h1>
+    <a href={{ url_for('download', path='/' ) }}{{ id }} download><b>Download</b></a>
+</h1>
+<br>
+<br>
+<p class="p1">URL will expire in: </p>
+<p id="time_left"></p>
 
-    <script>
-        // Set the date we're counting down to
-        var countDownDate = new Date(Date.UTC({{ year }}, {{ month }}, {{ day }}, {{ hour }}, {{ minute }}, {{ second }})).getTime()+(600*1000);
-        // Update the count down every 1 second
-        var x = setInterval(function() {
+<script>
+    // Set the date we're counting down to
+    var countDownDate = new Date(Date.UTC({{ year }}, {{ month }}, {{ day }}, {{ hour }}, {{ minute }}, {{ second }})).getTime()+(600*1000);
+    // Update the count down every 1 second
+    var x = setInterval(function () {
         // Get today's date and time
         var now = new Date().getTime();
         // Find the distance between now and the count down date
@@ -34,7 +34,7 @@
             // document.getElementById("demo").innerHTML = "EXPIRED";
             window.location.reload(true);
         }
-        }, 1000);
-    </script>
+    }, 1000);
+</script>
 
 {% endblock %}
