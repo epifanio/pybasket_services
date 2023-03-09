@@ -2,12 +2,18 @@ ipykernel==5.5.5
 json2html
 waiting
 ipyleaflet==0.14.0
+holoviews==1.14.9
 panel
-holoviews
-#geoviews
-datashader
+# geoviews
+# datashader
 bokeh==2.3.3
 ipywidgets_bokeh==1.0.2
 jsonschema
 cmcrameri
 bottleneck
+colorcet
+shapely
+ipydatetime
+geolinks
+pyproj
+owslib
