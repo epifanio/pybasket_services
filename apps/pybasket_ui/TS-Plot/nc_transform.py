@@ -4,6 +4,10 @@ import xarray as xr
 from netCDF4 import Dataset
 
 
+class metadict(dict):
+    pass
+
+
 def get_valid_vars(nc_url):
     var_list = []
     nc_fid = Dataset(nc_url, "r")
@@ -44,7 +48,94 @@ def get_valid_vars(nc_url):
 # 'var' Variance of values
 
 
+def get_data(resource_url):
+    """docstring"""
+    variables_dict = get_plottable_variables(resource_url)
+    variables = list(list(variables_dict.values())[0])
+    axis = list(variables_dict.keys())[0]
+    data = get_nc_data(resource_url)
+    dataset_metadata = data.dataset_metadata
+    variable_metadata = data.variable_metadata
+    data = data[variables]
+
+    # if isinstance(data.index, pd.MultiIndex):
+    #    data = data.reset_index(
+    #        level=[i for i in data.index.names if i != "time"], drop=True
+    #    )
+    if axis == "y_axis":
+        data.dataset_metadata = ""
+        data.dataset_metadata = dataset_metadata
+        data.variable_metadata = ""
+        data.variable_metadata = variable_metadata
+        data.feature_type = ""
+        data.feature_type = "TimeSeries"
+        return data
+    if axis == "x_axis":
+        if len(data.index.names) == 2:
+            tsp = get_tsp_data_dict(data)
+            tsp = metadict(tsp)
+            tsp.dataset_metadata = ""
+            tsp.dataset_metadata = dataset_metadata
+            tsp.variable_metadata = ""
+            tsp.variable_metadata = variable_metadata
+            tsp.feature_type = ""
+            tsp.feature_type = "TimeSeriesProfile"
+            return tsp
+        else:
+            data.dataset_metadata = ""
+            data.dataset_metadata = dataset_metadata
+            data.variable_metadata = ""
+            data.variable_metadata = variable_metadata
+            data.feature_type = ""
+            data.feature_type = "Profile"
+            return data
+
+
 def get_plottable_variables(nc_url):
+    print("#################### VAR CHECK 1 ######################")
+    try:
+        ds = xr.open_dataset(nc_url)
+        num_dims = len(ds.dims)
+        num_coords = len(ds.coords)
+        valid_dims = [i for i in ds.dims if np.unique(ds[i]).shape[0] != 1]
+        valid_coords = [i for i in ds.coords if np.unique(ds[i]).shape[0] != 1]
+        # TS, TSP
+        var_list = [
+            i
+            for i in ds
+            if len(ds[i].values.shape) != 0
+            if list(ds[i].dims) == valid_coords
+        ]
+
+        if len(var_list) <= 0:
+            var_list = [
+                i
+                for i in ds
+                if len(ds[i].shape) == num_coords
+                if list(ds[i].dims) == valid_dims
+            ]
+        # if num_dims == num_coords and num_dims >= 2 or "time" not in valid_dims:
+        if num_dims == num_coords and num_dims >= 2 or not any(item in [s for s in valid_dims if "time" in s.lower()] for item in  valid_dims ):
+            axis_name = "x_axis"
+        else:
+            axis_name = "y_axis"
+    except:
+        var_list = []
+        axis_name = "y_axis"
+        nc_fid = Dataset(nc_url, "r")
+        print("#################### VAR CHECK 2 ######################")
+        for i in list(nc_fid.variables.keys()):
+            try:
+                nc_fid.variables[i][0]
+                var_list.append(i)
+            except RuntimeError:
+                pass
+    var_dict = {axis_name: var_list}
+    print(var_dict)
+    return var_dict
+
+
+def get_plottable_variables__(nc_url):
     print("#################### VAR CHECK 1 ######################")
     try:
         ds = xr.open_dataset(nc_url)
