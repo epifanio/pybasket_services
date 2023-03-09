@@ -1,0 +1,64 @@
+version: '3.3'
+
+services:
+  bokeh:
+    # image: epinux/seaice:latest
+    image: epinux/seaice:prod
+    #build:
+    #  context: ./docker/bokeh
+    environment:
+      BOKEH_ALLOW_WS_ORIGIN: 'metsis-staging.met.no,applicate.met.no,gcw.met.no,saon.met.no,yopp.met.no,nordatanet.no,gcw.met.no,metsis3.met.no,metsis4.met.no,metsis5.met.no,bokeh.metsis-api.met.no,metsis.metsis-api.met.no,metsis-dev.local,demosearch.metsis.met.no,nbs-staging.met.no,cvl.eo.esa.int,adc.met.no,satellittdata.no,www.satellittdata.no,satellittdata.com,www.satellittdata.com,sios-svalbard.org,www.sios-svalbard.org,157.249.72.82,157.249.75.175,157.249.73.143,seaice.metsis-api.met.no'
+      PORT: '9999'
+      LOG_LEVEL: 'debug'
+      BOKEH_LOG_LEVEL: 'debug'
+      PYTHONUNBUFFERED: 1
+    ports:
+      - 9999:9999
+    hostname: seaice
+    networks:
+      - net
+      - traefik-public
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        # max_attempts: 5
+        # window: 240s
+      resources:
+        #limits:
+        #  cpus: '0.50'
+        #  memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.seaice-http.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.seaice-http.entrypoints=http
+        - traefik.http.routers.seaice-http.middlewares=https-redirect
+        - traefik.http.routers.seaice-https.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.seaice-https.entrypoints=https
+        - traefik.http.routers.seaice-https.tls=true
+        - traefik.http.routers.seaice-https.tls.certresolver=le
+        - traefik.http.services.seaice.loadbalancer.server.port=9999
+        # allow CORS
+        - "traefik.http.middlewares.testheader.headers.accesscontrolallowmethods=GET,OPTIONS,PUT"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolalloworiginlist=*"
+        - "traefik.http.middlewares.testheader.headers.accesscontrolmaxage=100"
+        - "traefik.http.middlewares.testheader.headers.addvaryheader=true"
+    volumes:
+      - ./apps/pybasket_ui/sea-ice-index-viz/bokeh-app:/SIE
+      - ./apps/pybasket_ui/sea-ice-index-viz/bokeh-app/panel_entrypoint.sh:/entrypoint.sh
+
+networks:
+  net:
+    driver: overlay
+    attachable: true
+  traefik-public:
+    external: true
+
