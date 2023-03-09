@@ -23,6 +23,8 @@ logger = setup_log("custom_checkbox", logtype="stream")
 
 selected_notebooks = []
 
+# TODO: others datatype - doesn´t get selected in the specs
+
 
 def get_selection(widget, json_data, nb_config):
     ts_selected = [
@@ -53,7 +55,7 @@ def get_selection(widget, json_data, nb_config):
     # print("SELECTED NOTEBOOK:", nb_selected)
     # nb_selected = []
     # print(ts_selected, p_selected, tsp_selected, na_selected, nb_selected)
-    if json_data['notebook'] == True:
+    if json_data["notebook"] == True:
         nb_dict = {i["name"]: i for i in nb_config["notebooks"]}
         # nb_selected_dict = {i: nb_dict[i] for i in nb_dict if i in nb_selected}
         nb_selected_dict = {
@@ -61,7 +63,9 @@ def get_selection(widget, json_data, nb_config):
             .children[2]
             .children[0]
             .children[0]
-            .value: nb_dict[widget.children[4].children[2].children[0].children[0].value]
+            .value: nb_dict[
+                widget.children[4].children[2].children[0].children[0].value
+            ]
         }
         print(nb_selected_dict)
     else:
@@ -196,8 +200,9 @@ def custom_checkbox(json_data, nb_config_file):
                         labels=[ts_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    row([Spacer(width=20), ts_info_btns[data_id],
-                    ts_plot_btns[data_id]]),
+                    row(
+                        [Spacer(width=20), ts_info_btns[data_id], ts_plot_btns[data_id]]
+                    ),
                 ),
                 column([ts_info_layouts[data_id], ts_plot_layouts[data_id]]),
             )
@@ -233,8 +238,7 @@ def custom_checkbox(json_data, nb_config_file):
                         labels=[p_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    row([Spacer(width=20), p_info_btns[data_id],
-                    p_plot_btns[data_id]]),
+                    row([Spacer(width=20), p_info_btns[data_id], p_plot_btns[data_id]]),
                 ),
                 column([p_info_layouts[data_id], p_plot_layouts[data_id]]),
             )
@@ -272,8 +276,13 @@ def custom_checkbox(json_data, nb_config_file):
                         labels=[tsp_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    row([Spacer(width=20),tsp_info_btns[data_id],
-                    tsp_plot_btns[data_id]]),
+                    row(
+                        [
+                            Spacer(width=20),
+                            tsp_info_btns[data_id],
+                            tsp_plot_btns[data_id],
+                        ]
+                    ),
                 ),
                 column([tsp_info_layouts[data_id], tsp_plot_layouts[data_id]]),
             )
@@ -311,8 +320,9 @@ def custom_checkbox(json_data, nb_config_file):
                         labels=[na_dict[data_id]["title"]],
                         css_classes=["bk-bs-checkbox"],
                     ),
-                    row([Spacer(width=20),na_info_btns[data_id],
-                    na_plot_btns[data_id]]),
+                    row(
+                        [Spacer(width=20), na_info_btns[data_id], na_plot_btns[data_id]]
+                    ),
                 ),
                 column([na_info_layouts[data_id], na_plot_layouts[data_id]]),
             )
@@ -341,7 +351,7 @@ def custom_checkbox(json_data, nb_config_file):
     else:
         na_label = Div(text="")
     # NOTEBOOKS - multi-selection
-    if json_data['notebook'] == True:
+    if json_data["notebook"] == True:
         parsed_yaml = parse_notebook_config(nb_config_file)
         print(parsed_yaml)
         if parsed_yaml is not None:
@@ -581,7 +591,10 @@ def export_widget(current_doc, widget, json_data, nb_config_file, advanced=False
         if output_type_radio_group.active == 1:
             api_call = "compress"
         if output_type_radio_group.active == 2:
-            api_call = "getspec2"
+            api_call = "compress_spec"
+        if output_type_radio_group.active == 3:
+            api_call = "compress_spec"
+        print(api_call)
         try:
             print(send_data, "api_call:", api_call)
             r = requests.post(f"https://{api_host}/api/{api_call}", json=send_data)
@@ -656,6 +669,7 @@ def export_widget(current_doc, widget, json_data, nb_config_file, advanced=False
         labels=[
             "data object [Yaml spec file]",
             "zip including data object and data file",
+            "zip including data PTEP-object and data file",
         ],
         active=0,
     )  #  "ipynb",
