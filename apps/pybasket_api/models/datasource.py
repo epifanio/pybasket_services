@@ -8,52 +8,48 @@ class Datasource(BaseModel):
     data: dict = pydantic.Field(
         default={"": ""},
         example={
-            "id1": {
+            "123e4567-e89b-12d3-a456-426655440000": {
                 "title": "osisaf sh icearea seasonal",
                 "feature_type": "timeSeries",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/osisaf_sh_icearea_seasonal.nc"
+                        "https://hyrax.epinux.com/opendap/osisaf_sh_icearea_seasonal.nc"
                     ]
                 },
             },
-            "id2": {
+            "123e4567-e89b-12d3-a456-426655440001": {
                 "title": "osisaf nh iceextent daily",
                 "feature_type": "timeSeries",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap//osisaf_nh_iceextent_daily.nc"
+                        "https://hyrax.epinux.com/opendap//osisaf_nh_iceextent_daily.nc"
                     ]
                 },
             },
-            "id3": {
+            "123e4567-e89b-12d3-a456-426655440002": {
                 "title": "itp01_itp1grd2042",
                 "feature_type": "profile",
                 "resources": {
-                    "opendap": [
-                        "http://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"
-                    ]
+                    "opendap": ["https://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"]
                 },
             },
-            "id4": {
+            "123e4567-e89b-12d3-a456-426655440003": {
                 "title": "itp01_itp1grd2042",
                 "feature_type": "NA",
                 "resources": {
-                    "opendap": [
-                        "http://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"
-                    ]
+                    "opendap": ["https://hyrax.epinux.com/opendap/itp01_itp1grd2042.nc"]
                 },
             },
-            "id5": {
+            "123e4567-e89b-12d3-a456-426655440004": {
                 "title": "ctdiaoos gi2007 2009",
                 "feature_type": "timeSeriesProfile",
                 "resources": {
                     "opendap": [
-                        "http://hyrax.epinux.com/opendap/ctdiaoos_gi2007_2009.nc"
+                        "https://hyrax.epinux.com/opendap/ctdiaoos_gi2007_2009.nc"
                     ]
                 },
             },
-            "id6": {
+            "123e4567-e89b-12d3-a456-426655440005": {
                 "title": "High resolution sea ice concentration",
                 "feature_type": "NA",
                 "resources": {
@@ -62,12 +58,12 @@ class Datasource(BaseModel):
                     ]
                 },
             },
-            "id7": {
+            "123e4567-e89b-12d3-a456-426655440006": {
                 "title": "S1A EW GRDM",
                 "feature_type": "NA",
                 "resources": {
                     "OGC:WMS": [
-                        "http://nbswms.met.no/thredds/wms_ql/NBS/S1A/2021/05/18/EW/S1A_EW_GRDM_1SDH_20210518T070428_20210518T070534_037939_047A42_65CD.nc?SERVICE=WMS&REQUEST=GetCapabilities"
+                        "https://nbswms.met.no/thredds/wms_ql/NBS/S1A/2021/05/18/EW/S1A_EW_GRDM_1SDH_20210518T070428_20210518T070534_037939_047A42_65CD.nc?SERVICE=WMS&REQUEST=GetCapabilities"
                     ]
                 },
             },
@@ -75,7 +71,7 @@ class Datasource(BaseModel):
     )
     email: str = pydantic.Field(default="me@you.web", example="epiesasha@me.com")
     project: Optional[str] = pydantic.Field(default="METSIS", example="METSIS")
-    notebook: Optional[bool] = pydantic.Field(default=False, example=False)
+    notebook: Optional[bool] = pydantic.Field(default=False, example=True)
     notebooks: Optional[dict] = pydantic.Field(
         default={"": ""},
         example={
