@@ -1,6 +1,7 @@
 .vscode/
 .idea/
 venv/
+.venv/
 apps/pybasket_ui/node_modules/
 apps/redis/data/
 apps/redis/data2/
